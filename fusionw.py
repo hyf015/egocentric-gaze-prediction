@@ -25,80 +25,6 @@ global features_blobs
 features_blobs = []
 def hook_feature(module, input, output):
     features_blobs.append(output)
-    #features_blobs = output.data.cpu().numpy()
-
-'''
-class st_3dfuse(nn.Module):
-    def __init__(self, features_s, features_t):
-        super(st_3dfuse, self).__init__()
-        self.features_t = features_t
-        self.features_s = features_s
-        self.relu = nn.ReLU()
-        self.fusion = nn.Conv3d(512, 512, kernel_size=(1,3,3), padding=(0,1,1))
-        self.pool3d = nn.MaxPool3d(kernel_size=(2,1,1), padding=0)
-        self.bn = nn.BatchNorm3d(512)
-        self.decoder = nn.Sequential(nn.Conv2d(512, 512, kernel_size=3, padding = 1), nn.ReLU(inplace=True),
-                                        nn.Conv2d(512, 512, kernel_size=3, padding = 1),
-                                        nn.ReLU(inplace=True),
-                                        nn.Upsample(scale_factor=2),
-                                        nn.Conv2d(512, 512, kernel_size=3, padding=1),nn.ReLU(inplace=True),
-                                        nn.Conv2d(512, 512, kernel_size=3, padding=1),nn.ReLU(inplace=True),
-                                        nn.Conv2d(512, 512, kernel_size=3, padding=1),nn.ReLU(inplace=True),
-                                        nn.Upsample(scale_factor=2),
-                                        nn.Conv2d(512, 256, kernel_size=3, padding=1),nn.ReLU(inplace=True),
-                                        nn.Conv2d(256, 256, kernel_size=3, padding=1),nn.ReLU(inplace=True),
-                                        nn.Conv2d(256, 256, kernel_size=3, padding=1),nn.ReLU(inplace=True),
-                                        nn.Upsample(scale_factor=2),
-                                        nn.Conv2d(256, 128, kernel_size=3, padding=1),nn.ReLU(inplace=True),
-                                        nn.Conv2d(128, 128, kernel_size=3, padding=1),nn.ReLU(inplace=True),
-                                        nn.Upsample(scale_factor=2),
-                                        nn.Conv2d(128, 64, kernel_size=3, padding=1),nn.ReLU(inplace=True),
-                                        nn.Conv2d(64, 64, kernel_size=3, padding=1),nn.ReLU(inplace=True),
-                                        nn.Conv2d(64, 1, kernel_size=1, padding=0),
-                                        )
-        self.final = nn.Sigmoid()
-
-    def forward(self, x_s, x_t, prev, i):
-        x_s = self.features_s(x_s)
-        x_t = self.features_t(x_t)
-        x_su = self.relu(x_s.unsqueeze(2)) # add dimension D
-        x_tu = x_t.unsqueeze(2)
-        x_fused = torch.cat((x_su, x_tu), 2)
-        x_fused = self.fusion(x_fused)
-        x_fused = self.pool3d(x_fused)
-        x_fused = x_fused.squeeze_(2)
-        x_fused = self.bn(x_fused)
-        x = x_fused * prev
-        x = self.relu(x_fused)
-        x = self.decoder(x_fused)
-        x = self.final(x)
-
-        return x
-
-
-
-class lstmnet(nn.Module):
-    def __init__(self, num_channel=512, num_layer=3, batch_size=16):
-        super(lstmnet, self).__init__()
-        self.lstm = nn.LSTM(num_channel, num_channel, num_layer)
-        self.tanh = nn.Tanh()
-        self.num_channel = num_channel
-        self.num_layer = num_layer
-        self.batch_size = batch_size
-
-
-    def forward(self, input, hidden):
-        # this hidden should be (h, c)
-        input = self.tanh(input)
-        if hidden is None:
-            ihidden = Variable(torch.zeros(self.num_layer, self.batch_size, self.num_channel)).cuda(async = True)
-            icell = Variable(torch.zeros(self.num_layer, self.batch_size, self.num_channel)).cuda(async = True)
-            inithidden = (ihidden, icell)
-            out, hidden = self.lstm(input, inithidden)
-        else:
-            out, hidden = self.lstm(input, hidden)
-        return (out, hidden)
-'''
 
 def crop_feature(feature, maxind, size):
     #maxind is gaze point
@@ -131,33 +57,6 @@ def crop_feature_var(feature, maxind, size):
             res = torch.cat((res, cfeature),0)
     return res
 
-'''
-def computeAAEAUC(output, target):
-    aae = []
-    auc = []
-    gp = []
-    for batch in range(output.size(0)):
-        out_sq = output[batch,:,:].squeeze()
-        tar_sq = target[batch,:,:].squeeze()
-        predicted = ndimage.measurements.center_of_mass(out_sq)
-        (i,j) = np.unravel_index(tar_sq.argmax(), tar_sq.shape)
-        gp.append([i,j])
-        d = 112/math.tan(math.pi/6)
-        r1 = np.array([predicted[0], predicted[1], d])
-        r2 = np.array([i, j, d])
-        angle = math.atan2(np.linalg.norm(np.cross(r1,r2)), np.dot(r1,r2))
-        aae.append(math.degrees(angle))
-
-        z = np.zeros((224,224))
-        z[int(predicted[0])][int(predicted[1])] = 1
-        z = ndimage.filters.gaussian_filter(z, 14)
-        z = z - np.min(z)
-        z = z / np.max(z)
-        atgt = z[i][j]
-        fpbool = z > atgt
-        auc.append(1 - float(fpbool.sum())/(output.shape[0]*output.shape[1]))
-    return np.mean(aae), np.mean(auc), gp
-'''
 
 def train(epoch, st_loader, model, modelw, criterion, optimizer, use_w = False, val = False):
     global features_blobs
