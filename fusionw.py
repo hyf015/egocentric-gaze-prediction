@@ -14,7 +14,7 @@ from floss import floss
 from data.STdatas import STTrainData, STValData
 from utils import *
 from models.LSTMnet import lstmnet
-from models.fusion_st3d import VGG_st_3dfuse
+from fusion_st3d import VGG_st_3dfuse
 from models.late_fusion import late_fusion
 #from lateDataset import lateDatasetTrain, lateDatasetVal
 
