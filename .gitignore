@@ -1,0 +1,7 @@
+save/*
+savefusion/*
+savelate/*
+savelstm/*
+*/*.pyc
+*.png
+*.pyc
