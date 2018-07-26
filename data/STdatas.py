@@ -5,37 +5,30 @@ import os
 from skimage import io
 import math
 
-imgPath = 'gtea_imgflow'
-gtPath = 'gtea_gts'
-fixsacPath = 'fixsac'
+imgPath = '../gtea_imgflow'
+gtPath = '../gtea_gts'
+fixsacPath = '../fixsac'
 listFolders = [k for k in os.listdir(imgPath)]
 listFolders.sort()
 listGtFiles = [k for k in os.listdir(gtPath) if 'Alireza' not in k]
 listGtFiles.sort()
 listValGtFiles = [k for k in os.listdir(gtPath) if 'Alireza' in k]
 listValGtFiles.sort()
-print 'num of training samples: ', len(listGtFiles)
+print('num of training samples: ', len(listGtFiles))
 
 listfixsacTrain = [k for k in os.listdir(fixsacPath) if 'Alireza' not in k]
 listfixsacVal = [k for k in os.listdir(fixsacPath) if 'Alireza' in k]
 listfixsacVal.sort()
 listfixsacTrain.sort()
 
-imgPath_s = 'gtea_images'
+imgPath_s = '../gtea_images'
 listTrainFiles = [k for k in os.listdir(imgPath_s) if 'Alireza' not in k]
 #listGtFiles = [k for k in os.listdir(gtPath) if 'Alireza' not in k]
 listValFiles = [k for k in os.listdir(imgPath_s) if 'Alireza' in k]
 #listValGtFiles = [k for k in os.listdir(gtPath) if 'Alireza' in k]
 listTrainFiles.sort()
 listValFiles.sort()
-print 'num of val samples: ', len(listValFiles)
-
-sparseflowpath = 'sparse_flow'
-listTrainflows = [k for k in os.listdir(sparseflowpath) if 'Alireza' not in k]
-listValflows = [k for k in os.listdir(sparseflowpath) if 'Alireza' in k]
-listTrainflows.sort()
-listValflows.sort()
-
+print('num of val samples: ', len(listValFiles))
 
 def build_temporal_list(imgPath, gtPath, listFolders, listGtFiles):
     imgx = []
@@ -54,22 +47,18 @@ def build_temporal_list(imgPath, gtPath, listFolders, listGtFiles):
     return imgx, imgy
 
 class STDatasetTrain(Dataset):
-    def __init__(self, imgPath, imgPath_s, gtPath, sflowPath, listFolders, listTrainFiles, listGtFiles, listfixsacTrain, listTrainflows, transform = None):
+    def __init__(self, imgPath, imgPath_s, gtPath, listFolders, listTrainFiles, listGtFiles, listfixsacTrain):
         #imgPath is flow path, containing several subfolders
         self.listFolders = listFolders
         self.listGtFiles = listGtFiles
-        self.transform = transform
         self.imgPath = imgPath
         self.imgPath_s = imgPath_s
         self.listTrainFiles = listTrainFiles
-        self.sflowPath = sflowPath
-        self.listTrainflows = listTrainflows
         self.gtPath = gtPath
         self.imgx, self.imgy = build_temporal_list(imgPath, gtPath, self.listFolders, listGtFiles)
         self.fixsac = 'i'
-        self.flow = listTrainflows
         for file in listfixsacTrain:
-            a=np.loadtxt('fixsac/'+file)
+            a=np.loadtxt(os.path.join(fixsacPath,file))
             ker = np.array([1,1,1])
             a = np.convolve(a, ker)
             a = a[1:-1]
@@ -105,28 +94,21 @@ class STDatasetTrain(Dataset):
         gt = torch.from_numpy(gt)
         gt = gt.float().div(255)
         gt = gt.unsqueeze(0)
-        flowmean = np.load(self.sflowPath + '/' + self.listTrainflows[index])
-        flowmean = torch.FloatTensor([float(flowmean)])
-        sample = {'image': im, 'flow': flowarr, 'gt': gt, 'fixsac': torch.FloatTensor([self.fixsac[index]]), 'imname': self.listTrainFiles[index], 'flowmean': flowmean}
-        if self.transform:
-            sample = self.transform(sample)
+        sample = {'image': im, 'flow': flowarr, 'gt': gt, 'fixsac': torch.FloatTensor([self.fixsac[index]]), 'imname': self.listTrainFiles[index]}
         return sample
 
 class STDatasetVal(Dataset):
-    def __init__(self, imgPath, imgPath_s, gtPath, sflowPath, listFolders, listValFiles, listValGtFiles, listfixsacVal, listValflows, transform = None):
+    def __init__(self, imgPath, imgPath_s, gtPath, listFolders, listValFiles, listValGtFiles, listfixsacVal):
         self.listFolders = listFolders
         self.listGtFiles = listValGtFiles
         self.listValFiles = listValFiles
-        self.transform = transform
         self.imgPath = imgPath
         self.imgPath_s = imgPath_s
         self.gtPath = gtPath
-        self.listValflows = listValflows
-        self.sflowPath = sflowPath
         self.imgx, self.imgy = build_temporal_list(imgPath, gtPath, self.listFolders, listGtFiles)
         self.fixsac = 'i'
         for file in listfixsacVal:
-            a=np.loadtxt('fixsac/'+file)
+            a=np.loadtxt(os.path.join(fixsacPath,file))
             ker = np.array([1,1,1])
             a = np.convolve(a, ker)
             a = a[1:-1]
@@ -162,20 +144,18 @@ class STDatasetVal(Dataset):
         gt = torch.from_numpy(gt)
         gt = gt.float().div(255)
         gt = gt.unsqueeze(0)
-        flowmean = np.load(self.sflowPath + '/' + self.listValflows[index])
-        flowmean = torch.FloatTensor([float(flowmean)])
-        sample = {'image': im, 'flow': flowarr, 'gt': gt, 'fixsac': torch.FloatTensor([self.fixsac[index]]), 'imname': self.listValFiles[index], 'flowmean': flowmean}
-        if self.transform:
-            sample = self.transform(sample)
+        sample = {'image': im, 'flow': flowarr, 'gt': gt, 'fixsac': torch.FloatTensor([self.fixsac[index]]), 'imname': self.listValFiles[index]}
         return sample
 
 
-STTrainData = STDatasetTrain('gtea_imgflow', 'gtea_images', 'gtea_gts', 'sparse_flow', listFolders, listTrainFiles, listGtFiles, listfixsacTrain, listTrainflows)
+STTrainData = STDatasetTrain(imgPath, imgPath_s, gtPath, listFolders, listTrainFiles, listGtFiles, listfixsacTrain)
 #STTrainLoader = DataLoader(dataset=STTrainData, batch_size=10, shuffle=False, num_workers=1, pin_memory=True)
 
-STValData = STDatasetVal('gtea_imgflow', 'gtea_images', 'gtea_gts', 'sparse_flow', listFolders, listValFiles, listValGtFiles, listfixsacVal, listValflows)
+STValData = STDatasetVal(imgPath, imgPath_s, gtPath, listFolders, listValFiles, listValGtFiles, listfixsacVal)
 #STValLoader = DataLoader(dataset=STValData, batch_size=10, shuffle=False, num_workers=1, pin_memory=True)
 
 if __name__ == '__main__':
     STValLoader = DataLoader(dataset=STValData, batch_size=1, shuffle=False, num_workers=1, pin_memory=True)
-    print len(STValLoader)
+    print(len(STValLoader))
+    STTrainLoader = DataLoader(dataset=STTrainData, batch_size=1, shuffle=False, num_workers=1, pin_memory=True)
+    print(len(STTrainLoader))

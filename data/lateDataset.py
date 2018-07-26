@@ -5,7 +5,7 @@ import os
 from skimage import io
 import math
 
-gtPath = 'gtea_gts'
+gtPath = '../gtea_gts'
 listGtFiles = [k for k in os.listdir(gtPath) if 'Carlos_Greek' not in k]
 listGtFiles.sort()
 listValGtFiles = [k for k in os.listdir(gtPath) if 'Carlos_Greek' in k]
@@ -13,7 +13,7 @@ listValGtFiles.sort()
 print 'num of training samples: ', len(listGtFiles)
 
 
-imgPath_s = 'gtea3_pred'
+imgPath_s = '../gtea3_pred'
 listTrainFiles = [k for k in os.listdir(imgPath_s) if 'Carlos_Greek' not in k]
 #listGtFiles = [k for k in os.listdir(gtPath) if 'Carlos_Greek' not in k]
 listValFiles = [k for k in os.listdir(imgPath_s) if 'Carlos_Greek' in k]
@@ -22,7 +22,7 @@ listTrainFiles.sort()
 listValFiles.sort()
 print 'num of val samples: ', len(listValFiles)
 
-featPath = 'gtea3_feat'
+featPath = '../gtea3_feat'
 listTrainFeats = [k for k in os.listdir(featPath) if 'Carlos_Greek' not in k]
 listValFeats = [k for k in os.listdir(featPath) if 'Carlos_Greek' in k]
 listTrainFeats.sort()

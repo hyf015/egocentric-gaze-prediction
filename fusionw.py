@@ -22,7 +22,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--lr', type=float, default=1e-7, required=False)
 parser.add_argument('--late_save_img', default='loss_late.png', required=False)
 parser.add_argument('--pretrained_model', default='savefusion/00004_fusion3d_bn_floss_checkpoint.pth.tar', required=False)
-parser.add_argument('--pretrained_lstm', default='savelstm/3layerall/best_lstmnet.pth.tar', required=False)
+parser.add_argument('--pretrained_lstm', default='savelstm/best_lstmnet.pth.tar', required=False)
 parser.add_argument('--pretrained_late', default='savelate/best.pth.tar', required=False)
 parser.add_argument('--lstm_save_img', default='loss_lstm.png', required=False)
 parser.add_argument('--save_lstm', default='best_lstm.pth.tar', required=False)
@@ -33,6 +33,8 @@ parser.add_argument('--num_epoch', type=int, default=10, required=False)
 parser.add_argument('--train_lstm', type=bool, default=True, required=False)
 parser.add_argument('--train_late', type=bool, default=True, required=False)
 parser.add_argument('--extract_late', type=bool, default=True, required=False)
+parser.add_argument('--extract_late_pred_folder', default='../gtea3_pred/', required=False)
+parser.add_argument('--extract_late_feat_folder', default='../gtea3_feat/', required=False)
 parser.add_argument('--device', default='0')
 parser.add_argument('--batch_size', type=int, default=10)
 parser.add_argument('--crop_size', type=int, default=3)
@@ -173,7 +175,7 @@ def vis_features(st_loader, model, modelw, savefolder):
         weighted_feature = weighted_feature / np.amax(weighted_feature)
         weighted_feature = np.uint8(255*weighted_feature)
         weighted_feature = cv2.resize(weighted_feature, (224,224))
-        img = cv2.imread('gtea_images/' + sample['imname'][0])
+        img = cv2.imread('../gtea_images/' + sample['imname'][0])
         heatmap = cv2.applyColorMap(weighted_feature, cv2.COLORMAP_JET)
         result = heatmap*0.3 + img*0.5
         cv2.imwrite(savefolder + 'gt_' + sample['imname'][0], result)
@@ -185,7 +187,7 @@ def vis_features(st_loader, model, modelw, savefolder):
         weighted_feature = weighted_feature / np.amax(weighted_feature)
         weighted_feature = np.uint8(255*weighted_feature)
         weighted_feature = cv2.resize(weighted_feature, (224,224))
-        img = cv2.imread('gtea_images/' + sample['imname'][0])
+        img = cv2.imread('../gtea_images/' + sample['imname'][0])
         heatmap = cv2.applyColorMap(weighted_feature, cv2.COLORMAP_JET)
         result = heatmap*0.3 + img*0.5
         cv2.imwrite(savefolder + 'noweight_' + sample['imname'][0], result)
@@ -200,7 +202,7 @@ def vis_features(st_loader, model, modelw, savefolder):
             weighted_feature = np.uint8(255*weighted_feature)
             weighted_feature = cv2.resize(weighted_feature, (224,224))
 
-            img = cv2.imread('gtea_images/' + sample['imname'][0])
+            img = cv2.imread('../gtea_images/' + sample['imname'][0])
             heatmap = cv2.applyColorMap(weighted_feature, cv2.COLORMAP_JET)
             result = heatmap*0.3 + img*0.5
             cv2.imwrite(savefolder + 'pred_' + sample['imname'][0], result)
@@ -229,7 +231,12 @@ def get_weighted(chn_weight, feature):
     #feature = feature - torch.mean(feature)
     return feature
 
-def extract_late(epoch, st_loader, model, modelw):
+def extract_late(epoch, st_loader, model, modelw, pred_folder=args.extract_late_pred_folder, feat_folder=args.extract_late_feat_folder):
+    # pred is the gaze prediction result of SP, feat is the output of AT.
+    if not os.path.exists(pred_folder):
+        os.makedirs(pred_folder)
+    if not os.path.exists(feat_folder):
+        os.makedirs(feat_folder)
     global features_blobs
     losses = AverageMeter()
     auc = AverageMeter()
@@ -261,7 +268,7 @@ def extract_late(epoch, st_loader, model, modelw):
         outim = output.cpu().data.numpy().squeeze() #(224,224)
         targetim = target_var.cpu().data.numpy().squeeze() #(224,224)
         outim = np.uint8(255*outim)
-        cv2.imwrite('gtea3_pred/'+currname, outim)
+        cv2.imwrite(os.path.join(pred_folder,currname), outim)
 
         aae1, auc1, pred_gp = computeAAEAUC(outim,targetim)
         #aucm.update(auc1)
@@ -281,7 +288,7 @@ def extract_late(epoch, st_loader, model, modelw):
         feat = feat.cpu().data.numpy().squeeze()
         feat = np.uint8(255*feat)
         feat = cv2.resize(feat, (224,224))
-        cv2.imwrite('gtea3_feat/'+currname, feat)
+        cv2.imwrite(os.path.join(feat_folder,currname), feat)
 
 
 def train_late(epoch, loader, model, criterion, optimizer):
@@ -364,8 +371,8 @@ if __name__ == '__main__':
     criterionw = nn.MSELoss().to(device)
     optimizerw = torch.optim.Adam(modelw.parameters(), lr=1e-4)
 
-    if not args.train_lstm:
-        trained_model = 'savelstm/3layerall/best_train3_lstmnet.pth.tar'
+    if not args.train_lstm: # then load pretrained lstm
+        trained_model = args.pretrained_lstm #'../savelstm/best_train3_lstmnet.pth.tar'
         pretrained_dict = torch.load(trained_model)
         model_dict = modelw.state_dict()
         model_dict.update(pretrained_dict)
@@ -374,8 +381,8 @@ if __name__ == '__main__':
     load_late = False
     model_late = late_fusion()
     model_late.to(device)
-    if load_late:
-        trained_model = 'savelate/best_train.pth.tar'
+    if not args.train_late:  # then load pretrained late fusion model
+        trained_model = args.pretrained_late
         pretrained_dict = torch.load(trained_model)
         model_dict = model_late.state_dict()
         model_dict.update(pretrained_dict)
@@ -420,8 +427,8 @@ if __name__ == '__main__':
     #STTrainLoader = DataLoader(dataset=STTrainData, batch_size=1, shuffle=False, num_workers=1, pin_memory=True)
     #STValLoader = DataLoader(dataset=STValData, batch_size=1, shuffle=False, num_workers=1, pin_memory=True)
 
-    del model
-    del modelw
+    del model, optimizer
+    del modelw, optimizerw
     from data.lateDataset import lateDatasetTrain, lateDatasetVal
     train_loader = DataLoader(dataset = lateDatasetTrain, batch_size = 32, shuffle=False, num_workers=1, pin_memory=True)
     val_loader = DataLoader(dataset = lateDatasetVal, batch_size = 32, shuffle=False, num_workers=1, pin_memory=True)
