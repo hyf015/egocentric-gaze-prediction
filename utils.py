@@ -49,11 +49,11 @@ def repackage_hidden(h):
         return tuple(repackage_hidden(v) for v in h)
 
 cfg = {
-    'A': [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
-    'B': [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
+    'A': [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512],
+    'B': [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512],
     'D': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512],
-    'E': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 256, 'M', 512, 512, 512, 512, 'M', 512, 512, 512, 512, 'M'],
-}
+    'E': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 256, 'M', 512, 512, 512, 512, 'M', 512, 512, 512, 512],
+} #last max pooling removed 
 
 def make_layers(cfg, in_channels, batch_norm=True):
     layers = []
@@ -143,52 +143,6 @@ def computeAAEAUC(output, target):
         z = np.zeros((224,224))
         z[int(predicted[0])][int(predicted[1])] = 1
         z = ndimage.filters.gaussian_filter(z, 14)
-        z = z - np.min(z)
-        z = z / np.max(z)
-        atgt = z[i][j]
-        fpbool = z > atgt
-        auc = (1 - float(fpbool.sum())/(output.shape[0]*output.shape[1]))
-        return aae, auc, [[i,j]]
-
-def computeAAEAUC_s(output, target):
-    aae = []
-    auc = []
-    gp = []
-    if output.ndim == 3:
-        for batch in range(output.shape[0]):
-            out_sq = output[batch,:,:].squeeze()
-            tar_sq = target[batch,:,:].squeeze()
-            predicted = ndimage.measurements.center_of_mass(out_sq)
-            (i,j) = np.unravel_index(tar_sq.argmax(), tar_sq.shape)
-            gp.append([i,j])
-            d = 112/math.tan(math.pi/6)/4
-            r1 = np.array([predicted[0], predicted[1], d])
-            r2 = np.array([i, j, d])
-            angle = math.atan2(np.linalg.norm(np.cross(r1,r2)), np.dot(r1,r2))
-            aae.append(math.degrees(angle))
-
-            z = np.zeros((56,56))
-            z[int(predicted[0])][int(predicted[1])] = 1
-            z = ndimage.filters.gaussian_filter(z, 14/4)
-            z = z - np.min(z)
-            z = z / np.max(z)
-            atgt = z[i][j]
-            fpbool = z > atgt
-            auc1 = 1 - float(fpbool.sum())/output.shape[2]/output.shape[1]
-            auc.append(auc1)
-        return np.mean(aae), np.mean(auc), gp
-    else:
-        predicted = ndimage.measurements.center_of_mass(output)
-        (i,j) = np.unravel_index(target.argmax(), target.shape)
-        d = 112/math.tan(math.pi/6)/4
-        r1 = np.array([predicted[0], predicted[1], d])
-        r2 = np.array([i, j, d])
-        angle = math.atan2(np.linalg.norm(np.cross(r1,r2)), np.dot(r1,r2))
-        aae = math.degrees(angle)
-
-        z = np.zeros((56,56))
-        z[int(predicted[0])][int(predicted[1])] = 1
-        z = ndimage.filters.gaussian_filter(z, 14/4)
         z = z - np.min(z)
         z = z / np.max(z)
         atgt = z[i][j]
