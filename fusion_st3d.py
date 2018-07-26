@@ -14,7 +14,7 @@ import collections
 from tqdm import tqdm
 
 from floss import floss
-from STdatas import STTrainData, STValData
+from data.STdatas import STTrainData, STValData
 
 ##############################################################spatialtemporal data loader#######################################################
 

@@ -10,7 +10,7 @@ import math
 from tqdm import tqdm
 import cv2
 
-from STdatas import STTrainData, STValData
+from data.STdatas import STTrainData, STValData
 from LSTMnet import lstmnet
 
 class st_extract(nn.Module):
