@@ -5,6 +5,7 @@ import numpy as np
 from scipy import ndimage
 from skimage import io
 import math
+import matplotlib.pyplot as plt
 
 
 def var_to_image(var):
@@ -149,3 +150,12 @@ def computeAAEAUC(output, target):
         fpbool = z > atgt
         auc = (1 - float(fpbool.sum())/(output.shape[0]*output.shape[1]))
         return aae, auc, [[i,j]]
+
+def plot_loss(train_loss, test_loss, save_path):
+    plt.plot(train_loss)
+    plt.plot(test_loss)
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc = 'upper right')
+    plt.savefig(os.path.join(save_path,args.loss_save))
+    plt.close()

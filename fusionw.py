@@ -16,9 +16,31 @@ from utils import *
 from models.LSTMnet import lstmnet
 from fusion_st3d import VGG_st_3dfuse
 from models.late_fusion import late_fusion
-#from lateDataset import lateDatasetTrain, lateDatasetVal
+import argparse
 
-batch_size = 10
+parser = argparse.ArgumentParser()
+parser.add_argument('--lr', type=float, default=1e-7, required=False)
+parser.add_argument('--late_save_img', default='loss_late.png', required=False)
+parser.add_argument('--pretrained_model', default='savefusion/00004_fusion3d_bn_floss_checkpoint.pth.tar', required=False)
+parser.add_argument('--pretrained_lstm', default='savelstm/3layerall/best_lstmnet.pth.tar', required=False)
+parser.add_argument('--pretrained_late', default='savelate/best.pth.tar', required=False)
+parser.add_argument('--lstm_save_img', default='loss_lstm.png', required=False)
+parser.add_argument('--save_lstm', default='best_lstm.pth.tar', required=False)
+parser.add_argument('--save_late', default='best_late.pth.tar', required=False)
+parser.add_argument('--save_path', default='savelate', required=False)
+parser.add_argument('--loss_function', default='f', required=False)
+parser.add_argument('--num_epoch', type=int, default=10, required=False)
+parser.add_argument('--train_lstm', type=bool, default=True, required=False)
+parser.add_argument('--train_late', type=bool, default=True, required=False)
+parser.add_argument('--extract_late', type=bool, default=True, required=False)
+parser.add_argument('--device', default='0')
+parser.add_argument('--batch_size', type=int, default=10)
+parser.add_argument('--crop_size', type=int, default=3)
+args = parser.parse_args()
+
+device = torch.device('cuda:'+args.device)
+
+batch_size = args.batch_size
 hook_name = 'features_s'
 
 global features_blobs
@@ -46,7 +68,7 @@ def crop_feature_var(feature, maxind, size):
     H = feature.size(2)
     W = feature.size(3)
     for b in range(feature.size(0)):
-        ind = maxind[b].data[0]
+        ind = maxind[b].item()
         fmax = np.unravel_index(ind, (H,W))
         fmax = np.clip(fmax, size/2, H-int(math.ceil(size/2.0)))
         cfeature = feature[b,:,(fmax[0]-size/2):(fmax[0]+int(math.ceil(size/2.0))),(fmax[1]-size/2):(fmax[1]+int(math.ceil(size/2.0)))]
@@ -57,83 +79,6 @@ def crop_feature_var(feature, maxind, size):
             res = torch.cat((res, cfeature),0)
     return res
 
-
-def train(epoch, st_loader, model, modelw, criterion, optimizer, use_w = False, val = False):
-    global features_blobs
-    losses = AverageMeter()
-    auc = AverageMeter()
-    aae = AverageMeter()
-    if val:
-        model.eval()
-    else:
-        model.train()
-    modelw.eval()
-    hidden = None
-    downsample = nn.AvgPool2d(16)
-    feature_fusion = Variable(torch.ones(batch_size,512,1,1)).cuda()
-    currname = None
-    for i, sample in enumerate(st_loader):
-        if sample['flowmean'].size(0) != batch_size:
-            continue
-        #reset hidden state only when a video is over
-        if currname is None:
-            currname = sample['imname'][-1][:-14]
-        else:
-            if sample['imname'][-1][:-14] != currname:
-                hidden = None
-                feature_fusion = Variable(torch.ones(batch_size,512,1,1)).cuda()
-                currname = sample['imname'][-1][:-14]
-
-        flowmean = sample['flowmean']
-        input_s = sample['image']
-        target = sample['gt']
-        input_t = sample['flow']
-        flowmean = flowmean.float().cuda(async=True)
-        input_s = input_s.float().cuda(async=True)
-        input_t = input_t.float().cuda(async=True)
-        target = target.float().cuda(async=True)
-        input_var_s = Variable(input_s)
-        input_var_t = Variable(input_t)
-        target_var = Variable(target)
-        
-        features_blobs = []
-        output = model(input_var_s, input_var_t)
-        feature_fusion = features_blobs[0]
-
-        target_var = target_var.view(output.size())
-        loss = criterion(output, target_var)
-        if not val:
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-        losses.update(loss.data[0], input_s.size(0))
-        outim = output.cpu().data.numpy().squeeze()
-        targetim = target_var.cpu().data.numpy().squeeze()
-        aae1, auc1, pred_gp = computeAAEAUC(outim,targetim)
-        auc.update(auc1)
-        aae.update(aae1)
-
-        if not use_w:
-            feature_fusion = Variable(torch.ones(batch_size,512,1,1)).cuda()
-        else:
-            #feature_fusion = Variable(feature_fusion.data)
-            cfeature = crop_feature(feature_fusion, pred_gp, 5)
-            chn_weight = cfeature.view(cfeature.size(0), cfeature.size(1), -1)
-            chn_weight = torch.mean(chn_weight, 2)
-            #print chn_weight.size()   #(batch_size,512)
-            chn_weight = torch.cat((chn_weight.data, flowmean), 1) #should be (batch_size, 513)
-            chn_weight = chn_weight.unsqueeze(1)  #(seq_len, batch, input_size)
-            chn_weight = Variable(chn_weight).cuda(async=True)
-            hidden = repackage_hidden(hidden)
-            pred_chn_weight, hidden = modelw(chn_weight, hidden)  #pred size (seq_len, batch, output_size) ie (batch_size, 1, 512)
-            pred_chn_weight = pred_chn_weight.squeeze()
-            feature_fusion = (pred_chn_weight+1)/2  #turn to range(0,1)
-            feature_fusion = feature_fusion.view(batch_size, 512, 1, 1)
-
-        if (i+1)%5000 == 0:
-            print('Epoch: [{0}][{1}/{2}]\t''AUCAAE {auc.avg:.3f} ({aae.avg:.3f})\t''Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(
-                epoch, i+1, len(st_loader)+1, auc = auc, loss= losses, aae=aae))
-    return losses.avg, auc.avg, aae.avg
 
 def visw(st_loader):
     from matplotlib import pyplot as plt
@@ -148,14 +93,11 @@ def visw(st_loader):
         plt.show()
 
 
-def trainw(epoch, st_loader, modelw, criterion, optimizer, val=False, verbose=False):
+def trainw(epoch, st_loader, modelw, criterion, optimizer):
     losses = AverageMeter()
-    if not val:
-        modelw.train()
-    else:
-        modelw.eval()
+    modelw.train()
     hidden = None
-    feature_fusion = Variable(torch.ones(batch_size,512,1,1)).cuda()
+    feature_fusion = torch.ones(batch_size,512,1,1).to(device)
     currname = None
     tanh = nn.Tanh()
     relu = nn.ReLU()
@@ -169,26 +111,13 @@ def trainw(epoch, st_loader, modelw, criterion, optimizer, val=False, verbose=Fa
         inp = sample['input'].unsqueeze(0)   #(1, 1, 512)
         target = sample['gt'].unsqueeze(0)    #(1,1, 512)
 
-        inp = Variable(inp)
-        target_var = Variable(target)
-
         if pred_chn_weight is not None:
             pred_chn_weight = pred_chn_weight.squeeze()
-            loss = criterion(pred_chn_weight, tanh(target_var))
-            if not val:
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
-            losses.update(loss.data[0])
-
-        if (i+1)% 2000== 0:
-            if verbose:
-                print torch.min(pred_chn_weight), torch.max(pred_chn_weight), torch.mean(pred_chn_weight)
-                print torch.min(tanh(target_var)), torch.max(tanh(target_var)), torch.mean(tanh(target_var))
-            #raw_input('press enter to continue...')
-            torch.save({'p':pred_chn_weight, 't':tanh(target_var)}, 'seeletm%03d.pth.tar'%i)
-            print('Epoch: [{0}][{1}/{2}]\t''Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(
-                epoch, i+1, len(st_loader)+1,  loss= losses))
+            loss = criterion(pred_chn_weight, tanh(target))
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            losses.update(loss.item())
 
         hidden = repackage_hidden(hidden)
         pred_chn_weight, hidden = modelw(inp, hidden)
@@ -200,7 +129,7 @@ def vis_features(st_loader, model, modelw, savefolder):
     global features_blobs
     model.eval()
     modelw.eval()
-    feature_fusion = Variable(torch.ones(batch_size,512,1,1)).cuda()
+    feature_fusion = torch.ones(batch_size,512,1,1).to(device)
     pred_chn_weight = None
     downsample = nn.AvgPool2d(16)
     hidden = None
@@ -215,17 +144,17 @@ def vis_features(st_loader, model, modelw, savefolder):
         input_s = sample['image']
         target = sample['gt']
         input_t = sample['flow']
-        flowmean = flowmean.float().cuda(async=True)
-        input_s = input_s.float().cuda(async=True)
-        input_t = input_t.float().cuda(async=True)
-        target = target.float().cuda(async=True)
-        input_var_s = Variable(input_s)
-        input_var_t = Variable(input_t)
-        target_var = Variable(target)
+        flowmean = flowmean.float().to(device)
+        input_s = input_s.float().to(device)
+        input_t = input_t.float().to(device)
+        target = target.float().to(device)
+        input_var_s = input_s
+        input_var_t = input_t
+        target_var = target
 
         target_flat = downsample(target_var).view(target_var.size(0), target_var.size(1), -1)
         _, maxind = torch.max(target_flat, 2)
-        feature_fusion = Variable(torch.ones(batch_size,512,1,1)).cuda()
+        feature_fusion = torch.ones(batch_size,512,1,1).to(device)
         features_blobs = []
         _ = model(input_var_s, input_var_t, feature_fusion, i)
         feature_fusion = features_blobs[0]
@@ -283,7 +212,7 @@ def vis_features(st_loader, model, modelw, savefolder):
         #print chn_weight.size()   #(batch_size,512)
         chn_weight = torch.cat((chn_weight.data, flowmean), 1) #should be (batch_size, 513)
         chn_weight = chn_weight.unsqueeze(1)  #(seq_len, batch, input_size)
-        chn_weight = Variable(chn_weight).cuda(async=True)
+        chn_weight = chn_weight.to(device)
         hidden = repackage_hidden(hidden)
         pred_chn_weight, hidden = modelw(chn_weight, hidden)  #pred size (seq_len, batch, output_size) ie (batch_size, 1, 512)
         pred_chn_weight = pred_chn_weight.squeeze()
@@ -312,7 +241,6 @@ def extract_late(epoch, st_loader, model, modelw):
     model.eval()
     modelw.eval()
     hidden = None
-    ds = nn.AvgPool2d(4, stride=4)
     currname = None
     for i, sample in tqdm(enumerate(st_loader)):
         currname = sample['imname'][0]
@@ -320,12 +248,12 @@ def extract_late(epoch, st_loader, model, modelw):
         input_s = sample['image']
         target = sample['gt']
         input_t = sample['flow']
-        input_s = input_s.float().cuda(async=True)
-        input_t = input_t.float().cuda(async=True)
-        target = target.float().cuda(async=True)
-        input_var_s = Variable(input_s)
-        input_var_t = Variable(input_t)
-        target_var = Variable(target) #(1,1,224,224)
+        input_s = input_s.float().to(device)
+        input_t = input_t.float().to(device)
+        target = target.float().to(device)
+        input_var_s = input_s
+        input_var_t = input_t
+        target_var = target #(1,1,224,224)
         features_blobs = []
         output = model(input_var_s, input_var_t)  #(1,1,224,224)
         feature_s = features_blobs[0]  #(1,512,14,14)
@@ -356,22 +284,17 @@ def extract_late(epoch, st_loader, model, modelw):
         cv2.imwrite('gtea3_feat/'+currname, feat)
 
 
-def train_late(epoch, loader, model, criterion, optimizer, val=False):
+def train_late(epoch, loader, model, criterion, optimizer):
     losses = AverageMeter()
     auc = AverageMeter()
     aae = AverageMeter()
-    ds = nn.AvgPool2d(4, stride=4)
     for i,sample in enumerate(loader):
         im = sample['im']
         gt = sample['gt']
         feat = sample['feat']
-        im = im.float().cuda(async = True)
-        gt = gt.float().cuda(async = True)
-        feat = feat.float().cuda(async = True)
-        im = Variable(im)
-        gt = Variable(gt)
-        #gt = ds(gt)
-        feat = Variable(feat)
+        im = im.float().to(device)
+        gt = gt.float().to(device)
+        feat = feat.float().to(device)
         out = model(feat, im)
         loss = criterion(out, gt)
         outim = out.cpu().data.numpy().squeeze()
@@ -379,50 +302,69 @@ def train_late(epoch, loader, model, criterion, optimizer, val=False):
         aae1, auc1, _ = computeAAEAUC(outim,targetim)
         auc.update(auc1)
         aae.update(aae1)
-        losses.update(loss.data[0])
-        if not val:
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-        if (i+1)%3060 == 0 or i == 0:
+        losses.update(loss.item())
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        if (i+1)%3060 == 0:
             print('Epoch: [{0}][{1}/{2}]\t''AUCAAE_late {auc.avg:.3f} ({aae.avg:.3f})\t''Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(
                 epoch, i+1, len(loader)+1, auc = auc, loss= losses, aae=aae,))
 
     return losses.avg, auc.avg, aae.avg
 
-def adjust_learning_rate(optimizer, epoch, lr):
+def val_late(epoch, loader, model, criterion):
+    losses = AverageMeter()
+    auc = AverageMeter()
+    aae = AverageMeter()
+    with torch.no_grad():
+        for i,sample in enumerate(loader):
+            im = sample['im']
+            gt = sample['gt']
+            feat = sample['feat']
+            im = im.float().to(device)
+            gt = gt.float().to(device)
+            feat = feat.float().to(device)
+            out = model(feat, im)
+            loss = criterion(out, gt)
+            outim = out.cpu().data.numpy().squeeze()
+            targetim = gt.cpu().data.numpy().squeeze()
+            aae1, auc1, _ = computeAAEAUC(outim,targetim)
+            auc.update(auc1)
+            aae.update(aae1)
+            losses.update(loss.item())
+            if (i+1) % 1000 == 0:
+                print('Epoch: [{0}][{1}/{2}]\t''AUCAAE_late {auc.avg:.3f} ({aae.avg:.3f})\t''Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(
+                    epoch, i+1, len(loader)+1, auc = auc, loss= losses, aae=aae,))
 
-    #lr = lr / 5
-    for param_group in optimizer.param_groups:
-        param_group['lr'] = lr
+    return losses.avg, auc.avg, aae.avg
+
 
 if __name__ == '__main__':
 
-    load_from = 4
-    trained_model = 'savefusion/%05d_fusion3d_bn_floss_checkpoint.pth.tar'%load_from
     #trained_model = 'savelstm/3layerall/0net.pth.tar'
-    print('building pretrained model from epoch %02d...'%load_from)
+    print('building pretrained model ...')
     model = VGG_st_3dfuse(make_layers(cfg['D'], 3), make_layers(cfg['D'], 20))
-    pretrained_dict = torch.load(trained_model)
+    pretrained_dict = torch.load(args.pretrained_model)
     model_dict = model.state_dict()
     #model_dict.update(pretrained_dict)
     model_dict.update(pretrained_dict['state_dict'])
     model.load_state_dict(model_dict, strict=False)
     
-    model.cuda()
+    model.to(device)
 
     model._modules.get(hook_name).register_forward_hook(hook_feature)
-    criterion = floss().cuda()
+    if args.loss_function != 'f':
+        criterion = torch.nn.BCELoss().to(device)
+    else:
+        criterion = floss().to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-7)
 
     modelw = lstmnet()
-    modelw.cuda()
-    criterionw = nn.MSELoss().cuda()
+    modelw.to(device)
+    criterionw = nn.MSELoss().to(device)
     optimizerw = torch.optim.Adam(modelw.parameters(), lr=1e-4)
 
-    load_lstm = False
-
-    if load_lstm:
+    if not args.train_lstm:
         trained_model = 'savelstm/3layerall/best_train3_lstmnet.pth.tar'
         pretrained_dict = torch.load(trained_model)
         model_dict = modelw.state_dict()
@@ -431,7 +373,7 @@ if __name__ == '__main__':
 
     load_late = False
     model_late = late_fusion()
-    model_late.cuda()
+    model_late.to(device)
     if load_late:
         trained_model = 'savelate/best_train.pth.tar'
         pretrained_dict = torch.load(trained_model)
@@ -441,7 +383,7 @@ if __name__ == '__main__':
         del pretrained_dict
 
     optimizer_late = torch.optim.Adam(model_late.parameters(), lr=1e-4)
-    criterion = floss().cuda()
+    criterion = floss().to(device)
     print('init done!')
     
     #vis_features(STTrainLoader, model, modelw, 'savelstm/3layerall/vistrainrelu/')
@@ -450,8 +392,7 @@ if __name__ == '__main__':
     from data.wdatas import wTrainData, wValData
     wTrainLoader = DataLoader(dataset=wTrainData, batch_size=1, shuffle=False, num_workers=0)
     wValLoader = DataLoader(dataset=wValData, batch_size=1, shuffle=False, num_workers=0)
-    train_lstm = True
-    if train_lstm:
+    if args.train_lstm:
         print('begin training lstm....')
         #trainw(0, wTrainLoader, modelw, criterionw, optimizerw, val=True)
         #trainw(0, wTrainLoader, modelw, criterionw, optimizerw)
@@ -464,23 +405,21 @@ if __name__ == '__main__':
             l = trainw(epoch, wTrainLoader, modelw, criterionw, optimizerw, verbose = False)
             print ('---------train loss: %f-----------'%l)
             if l < prevt:
-                torch.save(modelw.state_dict(), 'savelstm/3layerall/best_train3_lstmnet.pth.tar')
-            l = trainw(0, wValLoader, modelw, criterionw, optimizerw, val=True, verbose = False)
+                torch.save(modelw.state_dict(), os.path.join(args.save_path, args.save_lstm))
+            l = trainw(0, wValLoader, modelw, criterionw, optimizerw)
             print ('----------val loss: %f-------------'%l)
-            if epoch == -4:
-                adjust_learning_rate(optimizerw, epoch, 1e-5)
             if l<prev:
                 prev=l
-                print epoch
-                torch.save(modelw.state_dict(), 'savelstm/3layerall/best_val3_lstmnet.pth.tar')
+                torch.save(modelw.state_dict(), os.path.join(args.save_path, 'val'+args.save_lstm))
         print('lstm training finished!')
 
-    extract_late(0, DataLoader(dataset=STValData, batch_size=1, shuffle=False, num_workers=1, pin_memory=True), model, modelw)
-    #extract_late(0, DataLoader(dataset=STTrainData, batch_size=1, shuffle=False, num_workers=1, pin_memory=True), model, modelw)
+    if args.extract_late:
+        extract_late(0, DataLoader(dataset=STValData, batch_size=1, shuffle=False, num_workers=1, pin_memory=True), model, modelw)
+        extract_late(0, DataLoader(dataset=STTrainData, batch_size=1, shuffle=False, num_workers=1, pin_memory=True), model, modelw)
 
     #STTrainLoader = DataLoader(dataset=STTrainData, batch_size=1, shuffle=False, num_workers=1, pin_memory=True)
     #STValLoader = DataLoader(dataset=STValData, batch_size=1, shuffle=False, num_workers=1, pin_memory=True)
-    '''
+
     del model
     del modelw
     from data.lateDataset import lateDatasetTrain, lateDatasetVal
@@ -489,18 +428,16 @@ if __name__ == '__main__':
     trainprev = 999
     valprev = 999
     for epoch in range(100):
-        print ('begin training model....')
-        loss, auc, aae = train_late(epoch, train_loader, model_late, criterion, optimizer_late, val = False)
-        print('training, auc is %5f, aae is %5f'%(auc, aae))
-        if loss < trainprev:
-            torch.save({'state_dict': model_late.state_dict(), 'loss': loss, 'auc': auc, 'aae': aae}, 'savelate/best_train_3.pth.tar')
-            trainprev = loss
+        if args.train_late:
+            print ('begin training model....')
+            loss, auc, aae = train_late(epoch, train_loader, model_late, criterion, optimizer_late)
+            print('training, auc is %5f, aae is %5f'%(auc, aae))
+            if loss < trainprev:
+                torch.save({'state_dict': model_late.state_dict(), 'loss': loss, 'auc': auc, 'aae': aae}, os.path.join(args.save_path, args.save_late))
+                trainprev = loss
         print('begin validation...')
-        loss, auc, aae = train_late(epoch, val_loader, model_late, criterion, optimizer_late, val = True)
-        #extract_late(epoch, STTrainLoader, model, modelw, model_late, criterion, optimizer_late, val = False)
-        #extract_late(epoch, STValLoader, model, modelw, model_late, criterion, optimizer_late, val = False)
+        loss, auc, aae = val_late(epoch, val_loader, model_late, criterion)
         print('val, auc is %5f, aae is %5f'%(auc, aae))
         if loss < valprev:
-            torch.save({'state_dict': model_late.state_dict(), 'loss': loss, 'auc': auc, 'aae': aae}, 'savelate/best_val_3.pth.tar')
+            torch.save({'state_dict': model_late.state_dict(), 'loss': loss, 'auc': auc, 'aae': aae}, os.path.join(args.save_path, 'val'+args.save_late))
             valprev = loss
-    '''

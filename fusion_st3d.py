@@ -16,6 +16,21 @@ from tqdm import tqdm
 from floss import floss
 from data.STdatas import STTrainData, STValData
 from utils import *
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--lr', type=float, default=1e-7, required=False)
+parser.add_argument('--loss_save', default='loss_fusion.png', required=False)
+parser.add_argument('--save_name', default='best_fusion.pth.tar', required=False)
+parser.add_argument('--save_path', default='savefusion', required=False)
+parser.add_argument('--loss_function', default='f', required=False)
+parser.add_argument('--num_epoch', type=int, default=10, required=False)
+parser.add_argument('--device', default='0')
+#parser.add_argument('--batch_size', type=int, default=8)
+parser.add_argument('--resume', type=int, default=0, help='0 from vgg, 1 from separately pretrained models, 2 from pretrained fusion model.')
+args = parser.parse_args()
+
+device = torch.device('cuda:'+args.device)
 
 ##############################################################spatialtemporal data loader#######################################################
 
@@ -93,27 +108,11 @@ class VGG_st_3dfuse(nn.Module):
 def save_checkpoint(state,filename,save_path):
     torch.save(state, os.path.join(save_path, filename))
 
-class AverageMeter(object):
-    """Computes and stores the average and current value"""
-    def __init__(self):
-        self.reset()
-    
-    def reset(self):
-        self.val = 0
-        self.avg = 0
-        self.sum = 0
-        self.count = 0
-    
-    def update(self, val, n=1):
-        self.val = val
-        self.sum += val * n
-        self.count += n
-        self.avg = self.sum / self.count
 
 def train(st_loader, model, criterion, optimizer, epoch):
+    model.train()
     batch_time = AverageMeter()
     losses = AverageMeter()
-    model.train()
     end = time.time()
     optimizer.zero_grad()
     loss_mini_batch = 0.0
@@ -121,125 +120,87 @@ def train(st_loader, model, criterion, optimizer, epoch):
         input_s = sample['image']
         target = sample['gt']
         input_t = sample['flow']
-        input_s = input_s.float().cuda(async=True)
-        input_t = input_t.float().cuda(async=True)
-        target = target.float().cuda(async=True)
-        input_var_s = Variable(input_s)
-        input_var_t = Variable(input_t)
-        target_var = Variable(target)
-        output = model(input_var_s, input_var_t)
-        target_var = target_var.view(output.size())
-        loss = criterion(output, target_var)
-        loss_mini_batch += loss.data[0]
+        input_s = input_s.float().to(device)
+        input_t = input_t.float().to(device)
+        target = target.float().to(device)
+        output = model(input_s, input_t)
+        target = target.view(output.size())
+        loss = criterion(output, target)
+        loss_mini_batch += loss.item()
         loss.backward()
         optimizer.step()
         optimizer.zero_grad()
         batch_time.update(time.time() - end)
-        losses.update(loss.data[0], input_s.size(0))
+        losses.update(loss.item(), input_s.size(0))
         end = time.time()
         loss_mini_batch = 0
         if (i+1)%1000 == 0:
             print('Epoch: [{0}][{1}/{2}]\t''Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t''Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(
                 epoch, i+1, len(st_loader)+1, batch_time = batch_time, loss= losses))
+    return losses.avg
 
 def validate(st_loader, model, criterion):
+    model.eval()
     batch_time = AverageMeter()
     losses = AverageMeter()
     auc = AverageMeter()
     aae = AverageMeter()
-    model.eval()
     end = time.time()
-    for i, sample in enumerate(st_loader):
-        input_s = sample['image']
-        target = sample['gt']
-        input_t = sample['flow']
-        input_s = input_s.float().cuda(async=True)
-        input_t = input_t.float().cuda(async=True)
-        target = target.float().cuda(async=True)
-        input_var_s = Variable(input_s)
-        input_var_t = Variable(input_t)
-        target_var = Variable(target)
-        output = model(input_var_s, input_var_t)
-        target_var = target_var.view(output.size())
-        loss = criterion(output, target_var)
-        losses.update(loss.data[0], input_s.size(0))
-        batch_time.update(time.time() - end)
-        end = time.time()
+    with torch.no_grad():
+        for i, sample in enumerate(st_loader):
+            input_s = sample['image']
+            target = sample['gt']
+            input_t = sample['flow']
+            input_s = input_s.float().to(device)
+            input_t = input_t.float().to(device)
+            target = target.float().to(device)
+            output = model(input_s, input_t)
+            target = target.view(output.size())
+            loss = criterion(output, target)
+            losses.update(loss.item(), input_s.size(0))
+            batch_time.update(time.time() - end)
+            end = time.time()
 
-        outim = output.cpu().data.numpy().squeeze()
-        targetim = target_var.cpu().data.numpy().squeeze()
-        auc1 = computeAUC(outim,targetim)
-        aae1 = computeAAE(outim,targetim)
-        auc.update(auc1)
-        aae.update(aae1)
-        if i == 836:
-            outim = output.data.cpu().numpy()
-            outim = outim[0,:,:,:].squeeze()
-            io.imsave(str(epoch)+'_fusion_test.jpg',outim)
-            if not os.path.exists('targetfusion.jpg'):
-                targetim = target_var.data.cpu().numpy()
-                targetim = targetim[0,:,:,:].squeeze()
-                io.imsave('targetfusion.jpg', targetim)
-                print ('image saved!')
-        if i % 1000 == 0:
-            print('Test: [{0}/{1}]\t'
-                  'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-                  'Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(i, len(st_loader), batch_time=batch_time, loss=losses,))
+            outim = output.cpu().data.numpy().squeeze()
+            targetim = target.cpu().data.numpy().squeeze()
+            aae1, auc1, _ = computeAAEAUC(outim, targetim)
+            auc.update(auc1)
+            aae.update(aae1)
+            if i == 836:  #random inception of results, actually completely useless
+                outim = output.data.cpu().numpy()
+                outim = outim[0,:,:,:].squeeze()
+                io.imsave(os.path.join(args.save_path,'fusion_test_%05d.jpg'%i),outim)
+                if not os.path.exists(os.path.join(args.save_path,'targetfusion_%05d.jpg')):
+                    targetim = target.data.cpu().numpy()
+                    targetim = targetim[0,:,:,:].squeeze()
+                    io.imsave(os.path.join(args.save_path,'targetfusion_%05d.jpg'%i), targetim)
+            if i % 1000 == 0:
+                print('Test: [{0}/{1}]\t'
+                      'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
+                      'Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(i, len(st_loader), batch_time=batch_time, loss=losses,))
     print ('AUC: {0}\t AAE: {1}'.format(auc.avg, aae.avg))
     return losses.avg
 
 
-def computeAAE(output, target):
-    res = []
-    for batch in range(output.shape[0]):
-        out_sq = output[batch,:,:].squeeze()
-        tar_sq = target[batch,:,:].squeeze()
-        predicted = ndimage.measurements.center_of_mass(out_sq)
-        (i,j) = np.unravel_index(tar_sq.argmax(), tar_sq.shape)
-        d = 112/math.tan(math.pi/6)
-        r1 = np.array([predicted[0], predicted[1], d])
-        r2 = np.array([i, j, d])
-        angle = math.atan2(np.linalg.norm(np.cross(r1,r2)), np.dot(r1,r2))
-        res.append(math.degrees(angle))
-    if np.isnan(np.mean(res)):
-        print 'aae:'
-        print res
-        return 0
-    return np.mean(res)
 
-def computeAUC(output, target):
-    res = []
-    for batch in range(output.shape[0]):
-        out_sq = output[batch,:,:].squeeze()
-        tar_sq = target[batch,:,:].squeeze()
-        (i,j) = np.unravel_index(tar_sq.argmax(), tar_sq.shape)
-        atgt = out_sq[i][j]
-        fpbool = out_sq > atgt
-        res.append(1 - float(fpbool.sum())/(out_sq.shape[0]*out_sq.shape[1]))
-    if np.mean(res)<0:
-        print 'auc:'
-        print res
-    return np.mean(res)
-
-'''
 if __name__ == '__main__':
-    lr = 1e-7
-    save_path = 'savefusion'
+    lr = args.lr
+    save_path = args.save_path
     if not os.path.exists(save_path):
         os.makedirs(save_path)
     print('building model...')
     in_channels = 20
-    resume = 0
+    resume = args.resume
     # 2: resume from fusion
     # 0: from vgg
     # 1: resume from separately pretrained models
     if resume == 2:
         model = VGG_st_3dfuse(make_layers(cfg['D'], 3), make_layers(cfg['D'], 20))
-        trained_model = 'savefusion/00004_fusion3d_bn_floss_checkpoint.pth.tar'
+        trained_model = os.path.join(save_path,'00004_fusion3d_bn_floss_checkpoint.pth.tar')
         pretrained_dict = torch.load(trained_model)
         epochnow = pretrained_dict['epoch']
         pretrained_dict = pretrained_dict['state_dict']
-        model.cuda()
+        model.to(device)
         model_dict = model.state_dict()
         model_dict.update(pretrained_dict)
         model.load_state_dict(model_dict)
@@ -266,7 +227,7 @@ if __name__ == '__main__':
         model_dict_t.update(new_pretrained_dict)
         model.features_s.load_state_dict(model_dict_s)
         model.features_t.load_state_dict(model_dict_t)
-        model.cuda()
+        model.to(device)
     else:
         epochnow = 0
         model = VGG_st_3dfuse(make_layers(cfg['D'], 3), make_layers(cfg['D'], 20))
@@ -289,24 +250,29 @@ if __name__ == '__main__':
         model_dict_t.update(pretrained_dict_t)
         model.features_s.load_state_dict(model_dict_s)
         model.features_t.load_state_dict(model_dict_t)
-        model.cuda()
+        model.to(device)
     print('done!')
 
-    #criterion = torch.nn.BCELoss().cuda()
-    criterion = floss().cuda()
+    if args.loss_function != 'f':
+        criterion = torch.nn.BCELoss().to(device)
+    else:
+        criterion = floss().to(device)
     #train_params = list(model.fusion.parameters()) + list(model.decoder.parameters())
     train_params = model.parameters()
     optimizer = torch.optim.Adam(train_params, lr=1e-7)
+    train_loss = []
+    val_loss = []
 
-    for epoch in tqdm(range(epochnow, 31)):
+    for epoch in tqdm(range(epochnow, args.num_epoch)):
         
         #loss1 = validate(STValLoader, model, criterion)
         #print('epoch%05d, val loss is: %05f' % (epoch, loss1))
-        adjust_learning_rate(optimizer, epoch)
         #print('begin training!')
-        train(STTrainLoader, model, criterion, optimizer, epoch)
-        #loss1 = validate(STValLoader, model, criterion)
-        checkpoint_name = "%05d_%s" % (epoch, "fusion3d_bn_floss_checkpoint.pth.tar")
-        save_checkpoint({'epoch': epoch, 'arch': 'rgb', 'state_dict': model.state_dict(),},
-                                checkpoint_name, save_path)
-'''
+        loss1 = train(STTrainLoader, model, criterion, optimizer, epoch)
+        train_loss.append(loss1)
+        loss1 = validate(STValLoader, model, criterion)
+        val_loss.append(loss1)
+        plot_loss(trainl, testl, save_path)
+        checkpoint_name = args.save_name
+        save_checkpoint({'epoch': epoch, 'arch': 'fusion', 'state_dict': model.state_dict(),},
+                                checkpoint_name, save_path, 'optimizer':optimizer.state_dict())
