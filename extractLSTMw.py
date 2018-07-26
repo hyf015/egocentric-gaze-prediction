@@ -11,7 +11,7 @@ from tqdm import tqdm
 import cv2
 
 from data.STdatas import STTrainData, STValData
-from LSTMnet import lstmnet
+from models.LSTMnet import lstmnet
 
 class st_extract(nn.Module):
     def __init__(self, features_s):
