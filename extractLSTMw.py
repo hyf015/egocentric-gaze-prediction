@@ -15,11 +15,20 @@ from models.LSTMnet import lstmnet
 from utils import *
 import argparse
 
+"""
+Extract attention weights, save them for training LSTM and later use.
+
+Args:
+	save_path: path for saving attention weights
+	crop_size: size of cropping hard attention from original (14x14) feature map
+	trained_model: pretrained SP module
+"""
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--save_path', default='512w', required=False)
+parser.add_argument('--trained_model', default='savefusion/00004_fusion3d_bn_floss_checkpoint.pth.tar', required=False)
 parser.add_argument('--device', default='0')
 parser.add_argument('--crop_size', type=int, default=3)
-parser.add_argument('--resume', type=int, default=0, help='0 from vgg, 1 from separately pretrained models, 2 from pretrained fusion model.')
 args = parser.parse_args()
 
 device = torch.device('cuda:'+args.device)
@@ -33,7 +42,6 @@ class st_extract(nn.Module):
     def forward(self, x_s):
         x = self.features_s(x_s)
         return x
-
 
 batch_size = 1
 
@@ -98,7 +106,7 @@ def extractw(loader, model, savepath):
 print('building model...')
 model = st_extract(make_layers(cfg['D'], 3))
 model.to(device)
-trained_model = 'savefusion/00004_fusion3d_bn_floss_checkpoint.pth.tar'
+trained_model = args.trained_model
 pretrained_dict = torch.load(trained_model)
 pretrained_dict = pretrained_dict['state_dict']
 load_dict = {k:v for k,v in pretrained_dict.items() if 'features_s' in k}
@@ -112,3 +120,4 @@ del pretrained_dict, load_dict
 
 extractw(STTrainLoader, model, os.path.join(args.save_path, 'train'))
 extractw(STValLoader, model, os.path.join(args.save_path, 'test'))
+print('Attention weight successfully extracted.')
