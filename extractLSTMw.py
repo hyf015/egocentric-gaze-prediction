@@ -22,6 +22,9 @@ Args:
 	save_path: path for saving attention weights
 	crop_size: size of cropping hard attention from original (14x14) feature map
 	trained_model: pretrained SP module
+
+Use: python extractLSTMw.py --save_path /path/to/folder --trained_model /path/to/pretrained/SP/module
+
 """
 
 parser = argparse.ArgumentParser()

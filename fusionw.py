@@ -21,13 +21,13 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--lr', type=float, default=1e-7, required=False)
 parser.add_argument('--late_save_img', default='loss_late.png', required=False)
-parser.add_argument('--pretrained_model', default='savefusion/00004_fusion3d_bn_floss_checkpoint.pth.tar', required=False)
-parser.add_argument('--pretrained_lstm', default='savelstm/best_lstmnet.pth.tar', required=False)
-parser.add_argument('--pretrained_late', default='savelate/best.pth.tar', required=False)
+parser.add_argument('--pretrained_model', default='../savefusion/00004_fusion3d_bn_floss_checkpoint.pth.tar', required=False)
+parser.add_argument('--pretrained_lstm', default='../savelstm/best_lstmnet.pth.tar', required=False)
+parser.add_argument('--pretrained_late', default='../savelate/best.pth.tar', required=False)
 parser.add_argument('--lstm_save_img', default='loss_lstm.png', required=False)
 parser.add_argument('--save_lstm', default='best_lstm.pth.tar', required=False)
 parser.add_argument('--save_late', default='best_late.pth.tar', required=False)
-parser.add_argument('--save_path', default='savelate', required=False)
+parser.add_argument('--save_path', default='../savelate', required=False)
 parser.add_argument('--loss_function', default='f', required=False)
 parser.add_argument('--num_epoch', type=int, default=10, required=False)
 parser.add_argument('--train_lstm', type=bool, default=True, required=False)
@@ -135,18 +135,15 @@ def vis_features(st_loader, model, modelw, savefolder):
     pred_chn_weight = None
     downsample = nn.AvgPool2d(16)
     hidden = None
-    #sm = nn.Softmax(1)
     for i, sample in enumerate(st_loader):
         if i<100:
             continue
         if i>1000:
             return
         currname = sample['imname'][-1][:-4]
-        flowmean = sample['flowmean']
         input_s = sample['image']
         target = sample['gt']
         input_t = sample['flow']
-        flowmean = flowmean.float().to(device)
         input_s = input_s.float().to(device)
         input_t = input_t.float().to(device)
         target = target.float().to(device)
@@ -164,9 +161,6 @@ def vis_features(st_loader, model, modelw, savefolder):
         cfeature = crop_feature_var(feature_fusion, maxind, 5)
         chn_weight = cfeature.view(cfeature.size(0), cfeature.size(1), -1)
         chn_weight = torch.mean(chn_weight, 2)
-        #print torch.mean(chn_weight), torch.max(chn_weight), torch.min(chn_weight)
-        #raw_input()
-        #chn_weight = sm(chn_weight)
 
         weighted_feature = feature_fusion * chn_weight.view(batch_size, 512, 1, 1)
         weighted_feature = torch.sum(weighted_feature, 1)
@@ -193,7 +187,6 @@ def vis_features(st_loader, model, modelw, savefolder):
         cv2.imwrite(savefolder + 'noweight_' + sample['imname'][0], result)
 
         if pred_chn_weight is not None:
-            #pred_chn_weight = sm(pred_chn_weight)
             weighted_feature = feature_fusion * pred_chn_weight.view(batch_size, 512, 1, 1)
             weighted_feature = torch.sum(weighted_feature, 1)
             weighted_feature = weighted_feature[0,:,:].data.cpu().numpy()
@@ -212,7 +205,6 @@ def vis_features(st_loader, model, modelw, savefolder):
 
 
         #print chn_weight.size()   #(batch_size,512)
-        chn_weight = torch.cat((chn_weight.data, flowmean), 1) #should be (batch_size, 513)
         chn_weight = chn_weight.unsqueeze(1)  #(seq_len, batch, input_size)
         chn_weight = chn_weight.to(device)
         hidden = repackage_hidden(hidden)
@@ -434,17 +426,24 @@ if __name__ == '__main__':
     val_loader = DataLoader(dataset = lateDatasetVal, batch_size = 32, shuffle=False, num_workers=1, pin_memory=True)
     trainprev = 999
     valprev = 999
+    loss_train = []
+    loss_val = []
     for epoch in range(100):
         if args.train_late:
             print ('begin training model....')
             loss, auc, aae = train_late(epoch, train_loader, model_late, criterion, optimizer_late)
+            loss_train.append(loss)
             print('training, auc is %5f, aae is %5f'%(auc, aae))
             if loss < trainprev:
                 torch.save({'state_dict': model_late.state_dict(), 'loss': loss, 'auc': auc, 'aae': aae}, os.path.join(args.save_path, args.save_late))
                 trainprev = loss
         print('begin validation...')
         loss, auc, aae = val_late(epoch, val_loader, model_late, criterion)
+        loss_val.append(loss)
         print('val, auc is %5f, aae is %5f'%(auc, aae))
+        plot_loss(loss_train, loss_val, os.path.join(args.save_path, args.late_save_img))
         if loss < valprev:
             torch.save({'state_dict': model_late.state_dict(), 'loss': loss, 'auc': auc, 'aae': aae}, os.path.join(args.save_path, 'val'+args.save_late))
             valprev = loss
+        if not args.train_late:
+            break
