@@ -4,6 +4,7 @@ from torch.utils.data import Dataset, DataLoader
 import os
 from skimage import io
 import math
+from tqdm import tqdm
 
 imgPath = '../gtea_imgflow'
 gtPath = '../gtea_gts'
@@ -159,3 +160,5 @@ if __name__ == '__main__':
     print(len(STValLoader))
     STTrainLoader = DataLoader(dataset=STTrainData, batch_size=1, shuffle=False, num_workers=1, pin_memory=True)
     print(len(STTrainLoader))
+    for i in tqdm(STTrainLoader):
+        pass

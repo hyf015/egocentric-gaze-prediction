@@ -4,6 +4,7 @@ from torch.utils.data import Dataset, DataLoader
 import os
 from skimage import io
 import math
+from tqdm import tqdm
 
 gtPath = '../gtea_gts'
 listGtFiles = [k for k in os.listdir(gtPath) if 'Alireza' not in k]
@@ -13,7 +14,7 @@ listValGtFiles.sort()
 print('num of training samples: ', len(listGtFiles))
 
 
-imgPath_s = '../gtea_pred'
+imgPath_s = '../gtea2_pred'
 listTrainFiles = [k for k in os.listdir(imgPath_s) if 'Alireza' not in k]
 #listGtFiles = [k for k in os.listdir(gtPath) if 'Alireza' not in k]
 listValFiles = [k for k in os.listdir(imgPath_s) if 'Alireza' in k]
@@ -22,7 +23,7 @@ listTrainFiles.sort()
 listValFiles.sort()
 print('num of val samples: ', len(listValFiles))
 
-featPath = '../gtea_feat'
+featPath = '../gtea2_feat'
 listTrainFeats = [k for k in os.listdir(featPath) if 'Alireza' not in k]
 listValFeats = [k for k in os.listdir(featPath) if 'Alireza' in k]
 listTrainFeats.sort()
@@ -64,6 +65,9 @@ lateDatasetVal = lateDataset(imgPath_s, gtPath, featPath, listValFiles, listValG
 if __name__ == '__main__':
     a = DataLoader(dataset = lateDatasetTrain, batch_size = 10, shuffle=False, num_workers=1, pin_memory=True)
     print (len(a))
+    for i in tqdm(a):
+        pass
     a = DataLoader(dataset = lateDatasetVal, batch_size = 10, shuffle=False, num_workers=1, pin_memory=True)
     print (len(a))
-    print(len([k for k in listTrainFeats if 'Carlos_burger' in k]))
+    for i in tqdm(a):
+        pass
