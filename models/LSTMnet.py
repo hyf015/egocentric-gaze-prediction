@@ -103,7 +103,7 @@ if __name__ == '__main__':
     inp = Variable(torch.randn(16,1,512)).cuda()
     hidden = None
     o,h = net(inp, hidden)
-    print o.size()
+    print(o.size())
     '''
     criterion = torch.nn.MSELoss().cuda()
     lr = 1e-3

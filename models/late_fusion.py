@@ -43,4 +43,4 @@ if __name__ == '__main__':
     tensor1 = Variable(torch.randn(10,1,14,14))
     tensor2 = Variable(torch.randn(10,1,224,224))
     output = model(tensor1, tensor2)
-    print output.size()
+    print(output.size())

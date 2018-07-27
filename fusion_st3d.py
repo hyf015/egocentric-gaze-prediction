@@ -1,5 +1,4 @@
 import torch
-from torch.autograd import Variable
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 import torch.utils.model_zoo as model_zoo
@@ -15,6 +14,7 @@ from tqdm import tqdm
 
 from floss import floss
 from data.STdatas import STTrainData, STValData
+from models.SP import VGG_st_3dfuse
 from utils import *
 import argparse
 
@@ -26,7 +26,6 @@ parser.add_argument('--save_path', default='savefusion', required=False)
 parser.add_argument('--loss_function', default='f', required=False)
 parser.add_argument('--num_epoch', type=int, default=10, required=False)
 parser.add_argument('--device', default='0')
-#parser.add_argument('--batch_size', type=int, default=8)
 parser.add_argument('--resume', type=int, default=0, help='0 from vgg, 1 from separately pretrained models, 2 from pretrained fusion model.')
 args = parser.parse_args()
 
@@ -39,70 +38,6 @@ STTrainLoader = DataLoader(dataset=STTrainData, batch_size=16, shuffle=True, num
 STValLoader = DataLoader(dataset=STValData, batch_size=10, shuffle=False, num_workers=1, pin_memory=True)
 
 ##############################################################spatialtemporal data loader#######################################################
-
-
-class VGG_st_3dfuse(nn.Module):
-    def __init__(self, features_s, features_t):
-        super(VGG_st_3dfuse, self).__init__()
-        self.features_t = features_t
-        self.features_s = features_s
-        self.relu = nn.ReLU()
-        self.fusion = nn.Conv3d(512, 512, kernel_size=(1,3,3), padding=(0,1,1))
-        self.pool3d = nn.MaxPool3d(kernel_size=(2,1,1), padding=0)
-        self.bn = nn.BatchNorm3d(512)
-        self.decoder = nn.Sequential(nn.Conv2d(512, 512, kernel_size=3, padding = 1), nn.ReLU(inplace=True),
-                                        nn.Conv2d(512, 512, kernel_size=3, padding = 1),
-                                        nn.ReLU(inplace=True),
-                                        nn.Upsample(scale_factor=2),
-                                        nn.Conv2d(512, 512, kernel_size=3, padding=1),nn.ReLU(inplace=True),
-                                        nn.Conv2d(512, 512, kernel_size=3, padding=1),nn.ReLU(inplace=True),
-                                        nn.Conv2d(512, 512, kernel_size=3, padding=1),nn.ReLU(inplace=True),
-                                        nn.Upsample(scale_factor=2),
-                                        nn.Conv2d(512, 256, kernel_size=3, padding=1),nn.ReLU(inplace=True),
-                                        nn.Conv2d(256, 256, kernel_size=3, padding=1),nn.ReLU(inplace=True),
-                                        nn.Conv2d(256, 256, kernel_size=3, padding=1),nn.ReLU(inplace=True),
-                                        nn.Upsample(scale_factor=2),
-                                        nn.Conv2d(256, 128, kernel_size=3, padding=1),nn.ReLU(inplace=True),
-                                        nn.Conv2d(128, 128, kernel_size=3, padding=1),nn.ReLU(inplace=True),
-                                        nn.Upsample(scale_factor=2),
-                                        nn.Conv2d(128, 64, kernel_size=3, padding=1),nn.ReLU(inplace=True),
-                                        nn.Conv2d(64, 64, kernel_size=3, padding=1),nn.ReLU(inplace=True),
-                                        nn.Conv2d(64, 1, kernel_size=1, padding=0),
-                                        )
-        self.final = nn.Sigmoid()
-        self._initialize_weights()
-
-    def forward(self, x_s, x_t):
-        x_s = self.features_s(x_s)
-        x_t = self.features_t(x_t)
-        x_s = x_s.unsqueeze(2)
-        x_t = x_t.unsqueeze(2)
-        x_fused = torch.cat((x_s, x_t), 2)
-        x_fused = self.fusion(x_fused)
-        
-        x_fused = self.pool3d(x_fused)
-        x_fused = x_fused.squeeze_(2)
-        x_fused = self.bn(x_fused)
-
-        x_fused = self.relu(x_fused)
-        x_fused = self.decoder(x_fused)
-        x = self.final(x_fused)
-        return x
-
-    def _initialize_weights(self):
-         for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-                m.weight.data.normal_(0, math.sqrt(2. / n))
-                if m.bias is not None:
-                    m.bias.data.zero_()
-            elif isinstance(m, nn.BatchNorm2d):
-                m.weight.data.fill_(1)
-                m.bias.data.zero_()
-            elif isinstance(m, nn.Linear):
-                n = m.weight.size(1)
-                m.weight.data.normal_(0, 0.01)
-                m.bias.data.zero_()
 
 
 def save_checkpoint(state,filename,save_path):
@@ -274,5 +209,5 @@ if __name__ == '__main__':
         val_loss.append(loss1)
         plot_loss(trainl, testl, save_path)
         checkpoint_name = args.save_name
-        save_checkpoint({'epoch': epoch, 'arch': 'fusion', 'state_dict': model.state_dict(),},
-                                checkpoint_name, save_path, 'optimizer':optimizer.state_dict())
+        save_checkpoint({'epoch': epoch, 'arch': 'fusion', 'state_dict': model.state_dict(),'optimizer':optimizer.state_dict()},
+                                checkpoint_name, save_path)

@@ -6,27 +6,29 @@ from skimage import io
 import math
 
 gtPath = '../gtea_gts'
-listGtFiles = [k for k in os.listdir(gtPath) if 'Carlos_Greek' not in k]
+listGtFiles = [k for k in os.listdir(gtPath) if 'Alireza' not in k]
 listGtFiles.sort()
-listValGtFiles = [k for k in os.listdir(gtPath) if 'Carlos_Greek' in k]
+listValGtFiles = [k for k in os.listdir(gtPath) if 'Alireza' in k]
 listValGtFiles.sort()
-print 'num of training samples: ', len(listGtFiles)
+print('num of training samples: ', len(listGtFiles))
 
 
-imgPath_s = '../gtea3_pred'
-listTrainFiles = [k for k in os.listdir(imgPath_s) if 'Carlos_Greek' not in k]
-#listGtFiles = [k for k in os.listdir(gtPath) if 'Carlos_Greek' not in k]
-listValFiles = [k for k in os.listdir(imgPath_s) if 'Carlos_Greek' in k]
-#listValGtFiles = [k for k in os.listdir(gtPath) if 'Carlos_Greek' in k]
+imgPath_s = '../gtea_pred'
+listTrainFiles = [k for k in os.listdir(imgPath_s) if 'Alireza' not in k]
+#listGtFiles = [k for k in os.listdir(gtPath) if 'Alireza' not in k]
+listValFiles = [k for k in os.listdir(imgPath_s) if 'Alireza' in k]
+#listValGtFiles = [k for k in os.listdir(gtPath) if 'Alireza' in k]
 listTrainFiles.sort()
 listValFiles.sort()
-print 'num of val samples: ', len(listValFiles)
+print('num of val samples: ', len(listValFiles))
 
-featPath = '../gtea3_feat'
-listTrainFeats = [k for k in os.listdir(featPath) if 'Carlos_Greek' not in k]
-listValFeats = [k for k in os.listdir(featPath) if 'Carlos_Greek' in k]
+featPath = '../gtea_feat'
+listTrainFeats = [k for k in os.listdir(featPath) if 'Alireza' not in k]
+listValFeats = [k for k in os.listdir(featPath) if 'Alireza' in k]
 listTrainFeats.sort()
 listValFeats.sort()
+assert(len(listTrainFeats) == len(listTrainFiles))
+assert(len(listValGtFiles) == len(listValFiles))
 
 class lateDataset(Dataset):
     def __init__(self, imgPath_s, gtPath, featPath, listFiles, listGtFiles, listFeat):
@@ -61,6 +63,7 @@ lateDatasetVal = lateDataset(imgPath_s, gtPath, featPath, listValFiles, listValG
 
 if __name__ == '__main__':
     a = DataLoader(dataset = lateDatasetTrain, batch_size = 10, shuffle=False, num_workers=1, pin_memory=True)
-    print len(a)
+    print (len(a))
     a = DataLoader(dataset = lateDatasetVal, batch_size = 10, shuffle=False, num_workers=1, pin_memory=True)
-    print len(a)
+    print (len(a))
+    print(len([k for k in listTrainFeats if 'Carlos_burger' in k]))

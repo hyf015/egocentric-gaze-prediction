@@ -6,3 +6,5 @@ savelstm/*
 *.png
 *.pyc
 512w/*
+__pycache__/*
+*/__pychache__/*

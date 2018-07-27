@@ -14,12 +14,13 @@ from floss import floss
 from data.STdatas import STTrainData, STValData
 from utils import *
 from models.LSTMnet import lstmnet
-from fusion_st3d import VGG_st_3dfuse
+from models.SP import VGG_st_3dfuse
 from models.late_fusion import late_fusion
 import argparse
 
+print('importing done!')
 parser = argparse.ArgumentParser()
-parser.add_argument('--lr', type=float, default=1e-7, required=False)
+parser.add_argument('--lr', type=float, default=1e-7, required=False, help='lr for Adam')
 parser.add_argument('--late_save_img', default='loss_late.png', required=False)
 parser.add_argument('--pretrained_model', default='../savefusion/00004_fusion3d_bn_floss_checkpoint.pth.tar', required=False)
 parser.add_argument('--pretrained_lstm', default='../savelstm/best_lstmnet.pth.tar', required=False)
@@ -30,11 +31,11 @@ parser.add_argument('--save_late', default='best_late.pth.tar', required=False)
 parser.add_argument('--save_path', default='../savelate', required=False)
 parser.add_argument('--loss_function', default='f', required=False)
 parser.add_argument('--num_epoch', type=int, default=10, required=False)
-parser.add_argument('--train_lstm', type=bool, default=True, required=False)
-parser.add_argument('--train_late', type=bool, default=True, required=False)
-parser.add_argument('--extract_late', type=bool, default=True, required=False)
-parser.add_argument('--extract_late_pred_folder', default='../gtea3_pred/', required=False)
-parser.add_argument('--extract_late_feat_folder', default='../gtea3_feat/', required=False)
+parser.add_argument('--train_lstm', type=bool, default=False, required=False)
+parser.add_argument('--train_late', type=bool, default=False, required=False)
+parser.add_argument('--extract_late', type=bool, default=False, required=False)
+parser.add_argument('--extract_late_pred_folder', default='../new_pred/', required=False)
+parser.add_argument('--extract_late_feat_folder', default='../new_feat/', required=False)
 parser.add_argument('--device', default='0')
 parser.add_argument('--batch_size', type=int, default=10)
 parser.add_argument('--crop_size', type=int, default=3)
@@ -305,7 +306,7 @@ def train_late(epoch, loader, model, criterion, optimizer):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        if (i+1)%3060 == 0:
+        if (i+1)%300 == 0:
             print('Epoch: [{0}][{1}/{2}]\t''AUCAAE_late {auc.avg:.3f} ({aae.avg:.3f})\t''Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(
                 epoch, i+1, len(loader)+1, auc = auc, loss= losses, aae=aae,))
 
@@ -410,7 +411,7 @@ if __name__ == '__main__':
             if l<prev:
                 prev=l
                 torch.save(modelw.state_dict(), os.path.join(args.save_path, 'val'+args.save_lstm))
-        print('lstm training finished!')
+    print('lstm training finished!')
 
     if args.extract_late:
         extract_late(0, DataLoader(dataset=STValData, batch_size=1, shuffle=False, num_workers=1, pin_memory=True), model, modelw)
@@ -430,7 +431,7 @@ if __name__ == '__main__':
     loss_val = []
     for epoch in range(100):
         if args.train_late:
-            print ('begin training model....')
+            print ('begin training model epoch %03d....'%epoch)
             loss, auc, aae = train_late(epoch, train_loader, model_late, criterion, optimizer_late)
             loss_train.append(loss)
             print('training, auc is %5f, aae is %5f'%(auc, aae))

@@ -2,8 +2,8 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 import os
 
-trainPath = '512w/train'
-testPath = '512w/test'
+trainPath = '../512ww/train'
+testPath = '../512ww/test'
 '''
 listTrainFiles = [k for k in os.listdir(trainPath) if 'inp_' in k]
 listTrainFiles.sort()
@@ -17,8 +17,8 @@ listValGts.sort()
 listTrainFiles = sorted(os.listdir(trainPath))
 listValFiles = sorted(os.listdir(testPath))
 
-print 'num of training samples: ', len(listTrainFiles)
-print 'num of val samples: ', len(listValFiles)
+print ('num of training samples: ', len(listTrainFiles))
+print ('num of val samples: ', len(listValFiles))
 
 class wDatasetTrain(Dataset):
     def __init__(self, trainPath, listTrainFiles):
@@ -56,4 +56,4 @@ wValData = wDatasetVal(testPath, listValFiles)
 if __name__ == '__main__':
     wTrainLoader = DataLoader(dataset=wTrainData, batch_size=1, shuffle=False, num_workers=1, pin_memory=True)
     wValLoader = DataLoader(dataset=wValData, batch_size=1, shuffle=False, num_workers=1, pin_memory=True)
-    print len(wTrainData), len(wValData)
+    print (len(wTrainData), len(wValData))
