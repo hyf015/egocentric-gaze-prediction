@@ -7,6 +7,7 @@ from skimage import io
 import math
 import matplotlib.pyplot as plt
 import os
+import collections
 
 
 def var_to_image(var):

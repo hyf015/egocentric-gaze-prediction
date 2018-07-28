@@ -2,12 +2,9 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 import torch.utils.model_zoo as model_zoo
-import os
 import numpy as np
 from skimage import io, transform
-import math
-import time
-import collections
+import math, time, os
 from utils import *
 from floss import floss
 from data.STdatas import STTrainData, STValData
