@@ -6,6 +6,7 @@ from scipy import ndimage
 from skimage import io
 import math
 import matplotlib.pyplot as plt
+plt.switch_backend('agg')
 import os
 import collections
 
