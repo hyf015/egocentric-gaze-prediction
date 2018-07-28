@@ -422,8 +422,8 @@ if __name__ == '__main__':
     del model, optimizer
     del modelw, optimizerw
     from data.lateDataset import lateDatasetTrain, lateDatasetVal
-    train_loader = DataLoader(dataset = lateDatasetTrain, batch_size = 32, shuffle=False, num_workers=1, pin_memory=True)
-    val_loader = DataLoader(dataset = lateDatasetVal, batch_size = 32, shuffle=False, num_workers=1, pin_memory=True)
+    train_loader = DataLoader(dataset = lateDatasetTrain, batch_size = 32, shuffle=False, num_workers=0, pin_memory=True)
+    val_loader = DataLoader(dataset = lateDatasetVal, batch_size = 32, shuffle=False, num_workers=0, pin_memory=True)
     trainprev = 999
     valprev = 999
     loss_train = []
