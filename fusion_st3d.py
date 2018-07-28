@@ -194,7 +194,7 @@ if __name__ == '__main__':
         criterion = floss().to(device)
     #train_params = list(model.fusion.parameters()) + list(model.decoder.parameters())
     train_params = model.parameters()
-    optimizer = torch.optim.Adam(train_params, lr=1e-7)
+    optimizer = torch.optim.Adam(train_params, lr=args.lr)
     train_loss = []
     val_loss = []
 
@@ -207,7 +207,7 @@ if __name__ == '__main__':
         train_loss.append(loss1)
         loss1 = validate(STValLoader, model, criterion)
         val_loss.append(loss1)
-        plot_loss(trainl, testl, save_path)
+        plot_loss(train_loss, val_loss, save_path)
         checkpoint_name = args.save_name
         save_checkpoint({'epoch': epoch, 'arch': 'fusion', 'state_dict': model.state_dict(),'optimizer':optimizer.state_dict()},
                                 checkpoint_name, save_path)
