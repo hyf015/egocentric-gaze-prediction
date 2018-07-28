@@ -7,7 +7,7 @@ import os
 import time
 import numpy as np
 from utils import *
-from skimage import io, transform
+from floss import floss
 import math
 from tqdm import tqdm
 import argparse
