@@ -188,6 +188,7 @@ if not os.path.exists(args.save_path):
 # Training and testing loop
 train_loss = []
 val_loss = []
+best_loss = 100
 for epoch in tqdm(range(args.num_epoch)):
     loss1 = train(STTrainLoader, model, criterion, optimizer, epoch)
     train_loss.append(loss1)
@@ -195,7 +196,9 @@ for epoch in tqdm(range(args.num_epoch)):
     val_loss.append(loss1)
     plot_loss(train_loss, val_loss, os.path.join(args.save_path, args.loss_save))
     print('epoch%05d, val loss is: %05f' % (epoch, loss1))
-    save_checkpoint({'epoch': epoch, 'arch': 'flow', 'state_dict': model.state_dict(), 'optimizer': optimizer.state_dict(),},
+    if loss1 < best_loss:
+        best_loss = loss1
+        save_checkpoint({'epoch': epoch, 'arch': 'flow', 'state_dict': model.state_dict(), 'optimizer': optimizer.state_dict(),},
                             '%05d'%epoch+args.save_name, args.save_path)
 
 

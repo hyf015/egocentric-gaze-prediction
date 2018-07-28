@@ -197,6 +197,7 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(train_params, lr=args.lr)
     train_loss = []
     val_loss = []
+    best_loss = 100
 
     for epoch in tqdm(range(epochnow, args.num_epoch)):
         
@@ -209,5 +210,7 @@ if __name__ == '__main__':
         val_loss.append(loss1)
         plot_loss(train_loss, val_loss, save_path)
         checkpoint_name = args.save_name
-        save_checkpoint({'epoch': epoch, 'arch': 'fusion', 'state_dict': model.state_dict(),'optimizer':optimizer.state_dict()},
+        if loss1 < best_loss:
+            best_loss = loss1
+            save_checkpoint({'epoch': epoch, 'arch': 'fusion', 'state_dict': model.state_dict(),'optimizer':optimizer.state_dict()},
                                 checkpoint_name, save_path)
