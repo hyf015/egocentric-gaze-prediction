@@ -37,7 +37,7 @@ class VGG(nn.Module):
         super(VGG, self).__init__()
         self.features = features
         for param in self.features.parameters():
-    		param.requires_grad = False
+            param.requires_grad = False
         self.decoder = nn.Sequential(nn.Conv2d(512, 512, kernel_size=3, padding=1),
                                         nn.ReLU(inplace=True),
                                         nn.Conv2d(512, 512, kernel_size=3, padding=1),
@@ -156,26 +156,26 @@ def validate(val_loader, model, criterion, epoch):
 # main
 
 if args.resume == 1:
-	print('building model and loading from pretrained model...')
-	model = VGG(make_layers(cfg['D']))
-	trained_model = args.pretrained_model
-	pretrained_dict = torch.load(trained_model)
-	pretrained_dict = pretrained_dict['state_dict']
-	model_dict = model.state_dict()
-	model_dict.update(pretrained_dict)
-	model.load_state_dict(model_dict)
-	model.to(device)
-	print('done!')
+    print('building model and loading from pretrained model...')
+    model = VGG(make_layers(cfg['D']))
+    trained_model = args.pretrained_model
+    pretrained_dict = torch.load(trained_model)
+    pretrained_dict = pretrained_dict['state_dict']
+    model_dict = model.state_dict()
+    model_dict.update(pretrained_dict)
+    model.load_state_dict(model_dict)
+    model.to(device)
+    print('done!')
 else:
-	print('building model and loading pretrained_dict from vgg...')
-	model = VGG(make_layers(cfg['D']))
-	pretrained_dict = model_zoo.load_url('https://download.pytorch.org/models/vgg16_bn-6c64b313.pth')
-	model_dict = model.state_dict()
-	pretrained_dict = {k: v for k,v in pretrained_dict.items() if k in model_dict}
-	model_dict.update(pretrained_dict)
-	model.load_state_dict(model_dict)
-	model.to(device)
-	print('done!')
+    print('building model and loading pretrained_dict from vgg...')
+    model = VGG(make_layers(cfg['D']))
+    pretrained_dict = model_zoo.load_url('https://download.pytorch.org/models/vgg16_bn-6c64b313.pth')
+    model_dict = model.state_dict()
+    pretrained_dict = {k: v for k,v in pretrained_dict.items() if k in model_dict}
+    model_dict.update(pretrained_dict)
+    model.load_state_dict(model_dict)
+    model.to(device)
+    print('done!')
 
 
 if args.loss_function != 'f':
