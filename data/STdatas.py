@@ -87,7 +87,7 @@ class STDatasetTrain(Dataset):
             flowarr[:,:,2*flowi] = currflowx
             flowarr[:,:,2*flowi+1] = currflowy
         gt = io.imread(self.gtPath + '/' + self.listGtFiles[index])
-        #flowarr = np.divide(flowarr, 255.0)
+        flowarr = np.divide(flowarr, 255.0)
         flowarr = np.subtract(flowarr, 0.5)
         flowarr = np.divide(flowarr, 0.5)
         flowarr = flowarr.transpose((2,0,1))
@@ -137,7 +137,7 @@ class STDatasetVal(Dataset):
             flowarr[:,:,2*flowi] = currflowx
             flowarr[:,:,2*flowi+1] = currflowy
         gt = io.imread(self.gtPath + '/' + self.listGtFiles[index])
-        #flowarr = np.divide(flowarr, 255.0)
+        flowarr = np.divide(flowarr, 255.0)
         flowarr = np.subtract(flowarr, 0.5)
         flowarr = np.divide(flowarr, 0.5)
         flowarr = flowarr.transpose((2,0,1))
