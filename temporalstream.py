@@ -91,10 +91,12 @@ def train(train_loader, model, criterion, optimizer, epoch):
     end = time.time()
     optimizer.zero_grad()
     loss_mini_batch = 0.0
-    for i, sample in enumerate(train_loader):
+    for i, sample in tqdm(enumerate(train_loader)):
         input = sample['flow']
         target = sample['gt']
+        print(input.type())
         input = input.float().to(device)
+        print('I can come here!')
         target = target.to(device)
         output = model(input)
         target = target.view(output.size())
@@ -187,7 +189,7 @@ if not os.path.exists(args.save_path):
 train_loss = []
 val_loss = []
 best_loss = 100
-for epoch in tqdm(range(args.num_epoch)):
+for epoch in range(args.num_epoch):
     loss1 = train(STTrainLoader, model, criterion, optimizer, epoch)
     train_loss.append(loss1)
     loss1 = validate(STValLoader, model, criterion, epoch)
