@@ -153,7 +153,7 @@ def validate(val_loader, model, criterion, epoch):
 
 if args.resume == 1:
     print('building model and loading from pretrained model...')
-    model = VGG(make_layers(cfg['D']))
+    model = VGG(make_layers(cfg['D'], 20))
     trained_model = args.pretrained_model
     pretrained_dict = torch.load(trained_model)
     epochold = pretrained_dict['epoch']
