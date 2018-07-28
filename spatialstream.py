@@ -97,7 +97,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
     end = time.time()
     optimizer.zero_grad()
     loss_mini_batch = 0.0
-    for i, sample in enumerate(train_loader):
+    for i, sample in tqdm(enumerate(train_loader)):
         input = sample['image']
         target = sample['gt']
         input = input.float().to(device)
@@ -113,7 +113,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
         batch_time.update(time.time() - end)
         end = time.time()
         loss_mini_batch = 0
-        if (i+1) % 100 ==0:
+        if (i+1) % 5000 ==0:
             print('Epoch: [{0}][{1}/{2}]\t'
           'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
           'Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(epoch, i+1, len(train_loader)+1, batch_time=batch_time, loss=losses))
@@ -128,7 +128,7 @@ def validate(val_loader, model, criterion, epoch):
     model.eval()
     end = time.time()
     with torch.no_grad():
-        for i, sample in enumerate(val_loader):
+        for i, sample in tqdm(enumerate(val_loader)):
             input = sample['image']
             target = sample['gt']
             input = input.float().to(device)
@@ -145,7 +145,7 @@ def validate(val_loader, model, criterion, epoch):
             batch_time.update(time.time() - end)
             end = time.time()
 
-            if i % 1000 == 0:
+            if (i+1) % 1000 == 0:
                 print('Test: [{0}/{1}]\t'
                       'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                       'Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(i, len(val_loader), batch_time=batch_time, loss=losses,))
@@ -192,7 +192,7 @@ if not os.path.exists(args.save_path):
 train_loss = []
 val_loss = []
 best_loss = 100
-for epoch in tqdm(range(args.num_epoch)):
+for epoch in range(args.num_epoch):
     loss1 = train(SpatialTrainLoader, model, criterion, optimizer, epoch)
     train_loss.append(loss1)
     loss1 = validate(SpatialValLoader, model, criterion, epoch)

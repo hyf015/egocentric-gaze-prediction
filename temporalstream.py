@@ -94,9 +94,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
     for i, sample in tqdm(enumerate(train_loader)):
         input = sample['flow']
         target = sample['gt']
-        print(input.type())
         input = input.float().to(device)
-        print('I can come here!')
         target = target.to(device)
         output = model(input)
         target = target.view(output.size())
@@ -125,7 +123,7 @@ def validate(val_loader, model, criterion, epoch):
     model.eval()
     end = time.time()
     with torch.no_grad():
-        for i, sample in enumerate(val_loader):
+        for i, sample in tqdm(enumerate(val_loader)):
             input = sample['flow']
             target = sample['gt']
             input = input.float().to(device)
