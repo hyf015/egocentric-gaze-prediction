@@ -168,7 +168,7 @@ if args.resume == 1:
     print('done!')
 else:
     print('building model and loading pretrained_dict from vgg...')
-    model = VGG(make_layers(cfg['D']))
+    model = VGG(make_layers(cfg['D'], 3))
     pretrained_dict = model_zoo.load_url('https://download.pytorch.org/models/vgg16_bn-6c64b313.pth')
     model_dict = model.state_dict()
     pretrained_dict = {k: v for k,v in pretrained_dict.items() if k in model_dict}

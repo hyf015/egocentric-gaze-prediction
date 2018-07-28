@@ -165,7 +165,7 @@ if args.resume == 1:
     print('done!')
 else:
     print('building model and loading weights from vgg...')
-    model = VGG(make_layers(cfg['D']))
+    model = VGG(make_layers(cfg['D'], 20))
     in_channels = 20
     pretrained_dict = model_zoo.load_url('https://download.pytorch.org/models/vgg16_bn-6c64b313.pth')
     model_dict = model.state_dict()
