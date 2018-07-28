@@ -3,12 +3,11 @@ from torch.autograd import Variable
 import torch.nn as nn
 import numpy as np
 from torch.utils.data import DataLoader
-import os
 from scipy import ndimage
 from skimage import io
 import math
 from tqdm import tqdm
-import cv2
+import cv2, os
 
 from floss import floss
 from data.STdatas import STTrainData, STValData

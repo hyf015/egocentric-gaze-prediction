@@ -6,6 +6,7 @@ from scipy import ndimage
 from skimage import io
 import math
 import matplotlib.pyplot as plt
+import os
 
 
 def var_to_image(var):
@@ -157,5 +158,5 @@ def plot_loss(train_loss, test_loss, save_path):
     plt.ylabel('loss')
     plt.xlabel('epoch')
     plt.legend(['train', 'test'], loc = 'upper right')
-    plt.savefig(os.path.join(save_path,args.loss_save))
+    plt.savefig(save_path)
     plt.close()
