@@ -72,23 +72,6 @@ def make_layers(cfg, in_channels, batch_norm=True):
             in_channels = v
     return nn.Sequential(*layers)
 
-def make_layers_e(cfg, in_channels, batch_norm=True):
-    layers = []
-    for i, v in enumerate(cfg):
-        if v == 'M':
-            layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
-        else:
-            conv2d = nn.Conv2d(in_channels, v, kernel_size=3, padding=1)
-            if batch_norm:
-                if i == 16:
-                    layers += [conv2d, nn.BatchNorm2d(v)]
-                else:
-                    layers += [conv2d, nn.BatchNorm2d(v), nn.ReLU(inplace=False)]
-            else:
-                layers += [conv2d, nn.ReLU(inplace=True)]
-            in_channels = v
-    return nn.Sequential(*layers)
-
 def change_key_names(old_params, in_channels):
     new_params = collections.OrderedDict()
     layer_count = 0
@@ -100,11 +83,11 @@ def change_key_names(old_params, in_channels):
                 flow_weight = rgb_weight_mean.repeat(1,in_channels,1,1)
                 new_params[layer_key] = flow_weight
                 layer_count += 1
-                print(layer_key, new_params[layer_key].size())
+                #print(layer_key, new_params[layer_key].size())
             else:
                 new_params[layer_key] = old_params[layer_key]
                 layer_count += 1
-                print(layer_key, new_params[layer_key].size())
+                #print(layer_key, new_params[layer_key].size())
     return new_params
 
 def computeAAEAUC(output, target):
