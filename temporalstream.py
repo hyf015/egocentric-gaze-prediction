@@ -23,7 +23,7 @@ parser.add_argument('--num_epoch', type=int, default=10, required=False)
 parser.add_argument('--device', default='0')
 parser.add_argument('--resume', type=int, default=0, help='0 from vgg, 1 from pretrained model.')
 parser.add_argument('--pretrained_model', default='save/best_spatial.pth.tar', help='path to pretrained model')
-parser.add_argument('--batch_size', tyoe=int, default=16, required=False)
+parser.add_argument('--batch_size', type=int, default=16, required=False)
 args = parser.parse_args()
 
 device = torch.device('cuda:'+args.device)
