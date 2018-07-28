@@ -428,7 +428,7 @@ if __name__ == '__main__':
     valprev = 999
     loss_train = []
     loss_val = []
-    for epoch in range(100):
+    for epoch in range(args.num_epoch):
         if args.train_late:
             print ('begin training model epoch %03d....'%epoch)
             loss, auc, aae = train_late(epoch, train_loader, model_late, criterion, optimizer_late)
