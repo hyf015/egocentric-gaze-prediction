@@ -22,11 +22,13 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--lr', type=float, default=1e-7, required=False)
 parser.add_argument('--loss_save', default='loss_fusion.png', required=False)
 parser.add_argument('--save_name', default='best_fusion.pth.tar', required=False)
-parser.add_argument('--save_path', default='savefusion', required=False)
+parser.add_argument('--save_path', default='save', required=False)
 parser.add_argument('--loss_function', default='f', required=False)
 parser.add_argument('--num_epoch', type=int, default=10, required=False)
 parser.add_argument('--device', default='0')
-parser.add_argument('--resume', type=int, default=0, help='0 from vgg, 1 from separately pretrained models, 2 from pretrained fusion model.')
+parser.add_argument('--resume', type=int, default=1, help='0 from vgg, 1 from separately pretrained models, 2 from pretrained fusion model.')
+parser.add_argument('--pretrained_spatial', default='save/04_spatial.pth.tar', required=False)
+parser.add_argument('--pretrained_temporal', default='save/03_temporal.pth.tar', required=False)
 args = parser.parse_args()
 
 device = torch.device('cuda:'+args.device)
@@ -51,7 +53,7 @@ def train(st_loader, model, criterion, optimizer, epoch):
     end = time.time()
     optimizer.zero_grad()
     loss_mini_batch = 0.0
-    for i, sample in enumerate(st_loader):
+    for i, sample in tqdm(enumerate(st_loader)):
         input_s = sample['image']
         target = sample['gt']
         input_t = sample['flow']
@@ -82,7 +84,7 @@ def validate(st_loader, model, criterion):
     aae = AverageMeter()
     end = time.time()
     with torch.no_grad():
-        for i, sample in enumerate(st_loader):
+        for i, sample in tqdm(enumerate(st_loader)):
             input_s = sample['image']
             target = sample['gt']
             input_t = sample['flow']
@@ -166,8 +168,8 @@ if __name__ == '__main__':
     else:
         epochnow = 0
         model = VGG_st_3dfuse(make_layers(cfg['D'], 3), make_layers(cfg['D'], 20))
-        pretrained_dict_s = torch.load('save/00003_floss_checkpoint.pth.tar')
-        pretrained_dict_t = torch.load('saveflow/00003__floss_checkpoint.pth.tar')
+        pretrained_dict_s = torch.load(args.pretrained_spatial)
+        pretrained_dict_t = torch.load(args.pretrained_temporal)
         model_dict_s = model.features_s.state_dict()
         model_dict_t = model.features_t.state_dict()
         pretrained_dict_s = pretrained_dict_s['state_dict']
@@ -192,18 +194,17 @@ if __name__ == '__main__':
         criterion = torch.nn.BCELoss().to(device)
     else:
         criterion = floss().to(device)
-    #train_params = list(model.fusion.parameters()) + list(model.decoder.parameters())
-    train_params = model.parameters()
-    optimizer = torch.optim.Adam(train_params, lr=args.lr)
+
+    optimizer = torch.optim.Adam([{'params': list(model.features_s.parameters())+list(model.features_t.parameters()),
+                                   'lr': args.lr/10},
+                                  {'params': list(model.fusion.parameters())+list(model.bn.parameters())+list(model.decoder.parameters()),}
+                                 ], lr=args.lr)
     train_loss = []
     val_loss = []
     best_loss = 100
 
-    for epoch in tqdm(range(epochnow, args.num_epoch)):
+    for epoch in range(epochnow, args.num_epoch):
         
-        #loss1 = validate(STValLoader, model, criterion)
-        #print('epoch%05d, val loss is: %05f' % (epoch, loss1))
-        #print('begin training!')
         loss1 = train(STTrainLoader, model, criterion, optimizer, epoch)
         train_loss.append(loss1)
         loss1 = validate(STValLoader, model, criterion)
