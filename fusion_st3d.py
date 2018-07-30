@@ -25,6 +25,7 @@ parser.add_argument('--save_name', default='best_fusion.pth.tar', required=False
 parser.add_argument('--save_path', default='save', required=False)
 parser.add_argument('--loss_function', default='f', required=False)
 parser.add_argument('--num_epoch', type=int, default=10, required=False)
+parser.add_argument('--batch_size', type=int, default=16, required=False)
 parser.add_argument('--device', default='0')
 parser.add_argument('--resume', type=int, default=1, help='0 from vgg, 1 from separately pretrained models, 2 from pretrained fusion model.')
 parser.add_argument('--pretrained_spatial', default='save/04_spatial.pth.tar', required=False)
@@ -35,9 +36,9 @@ device = torch.device('cuda:'+args.device)
 
 ##############################################################spatialtemporal data loader#######################################################
 
-STTrainLoader = DataLoader(dataset=STTrainData, batch_size=16, shuffle=True, num_workers=1, pin_memory=True)
+STTrainLoader = DataLoader(dataset=STTrainData, batch_size=args.batch_size, shuffle=True, num_workers=1, pin_memory=True)
 
-STValLoader = DataLoader(dataset=STValData, batch_size=10, shuffle=False, num_workers=1, pin_memory=True)
+STValLoader = DataLoader(dataset=STValData, batch_size=args.batch_size, shuffle=False, num_workers=1, pin_memory=True)
 
 ##############################################################spatialtemporal data loader#######################################################
 
@@ -176,15 +177,17 @@ if __name__ == '__main__':
         pretrained_dict_t = pretrained_dict_t['state_dict']
         pretrained_dict_s = {k: v for k,v in pretrained_dict_s.items() if 'features' in k}
         pretrained_dict_t = {k: v for k,v in pretrained_dict_t.items() if 'features' in k}
+        new_pretrained_dict_t = {}
+        new_pretrained_dict_s = {}
         for k in pretrained_dict_t.keys():
-            pretrained_dict_t[k[9:]] = pretrained_dict_t[k]
+            new_pretrained_dict_t[k[9:]] = pretrained_dict_t[k]
         for k in pretrained_dict_s.keys():
-            pretrained_dict_s[k[9:]] = pretrained_dict_s[k]
-        pretrained_dict_s = {k: v for k,v in pretrained_dict_s.items() if k in model_dict_s}
-        pretrained_dict_t = {k: v for k,v in pretrained_dict_t.items() if k in model_dict_t}
+            new_pretrained_dict_s[k[9:]] = pretrained_dict_s[k]
+        new_pretrained_dict_s = {k: v for k,v in pretrained_dict_s.items() if k in model_dict_s}
+        new_pretrained_dict_t = {k: v for k,v in pretrained_dict_t.items() if k in model_dict_t}
         
-        model_dict_s.update(pretrained_dict_s)
-        model_dict_t.update(pretrained_dict_t)
+        model_dict_s.update(new_pretrained_dict_s)
+        model_dict_t.update(new_pretrained_dict_t)
         model.features_s.load_state_dict(model_dict_s)
         model.features_t.load_state_dict(model_dict_t)
         model.to(device)

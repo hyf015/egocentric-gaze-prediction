@@ -9,7 +9,7 @@ class VGG_st_3dfuse(nn.Module):
         self.relu = nn.ReLU()
         self.fusion = nn.Conv3d(512, 512, kernel_size=(1,3,3), padding=(0,1,1))
         self.pool3d = nn.MaxPool3d(kernel_size=(2,1,1), padding=0)
-        self.bn = nn.BatchNorm3d(512)
+        self.bn = nn.BatchNorm2d(512)
         self.decoder = nn.Sequential(nn.Conv2d(512, 512, kernel_size=3, padding = 1), nn.ReLU(inplace=True),
                                         nn.Conv2d(512, 512, kernel_size=3, padding = 1),
                                         nn.ReLU(inplace=True),
@@ -38,10 +38,10 @@ class VGG_st_3dfuse(nn.Module):
         x_s = x_s.unsqueeze(2)
         x_t = x_t.unsqueeze(2)
         x_fused = torch.cat((x_s, x_t), 2)
-        x_fused = self.fusion(x_fused)
+        x_fused = self.fusion(x_fused) #(batch_size, 512, 2, 14, 14)
         
-        x_fused = self.pool3d(x_fused)
-        x_fused = x_fused.squeeze_(2)
+        x_fused = self.pool3d(x_fused) #(batch_size, 512, 1, 14, 14)
+        x_fused = x_fused.squeeze_(2) #(batch_size, 512, 14, 14)
         x_fused = self.bn(x_fused)
 
         x_fused = self.relu(x_fused)
