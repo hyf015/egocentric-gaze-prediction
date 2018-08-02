@@ -15,6 +15,7 @@ from utils import *
 from models.LSTMnet import lstmnet
 from models.SP import VGG_st_3dfuse
 from models.late_fusion import late_fusion
+from extractLSTMw import extract_LSTM_training_data
 import argparse
 
 print('importing done!')
@@ -80,20 +81,6 @@ def crop_feature_var(feature, maxind, size):
         else:
             res = torch.cat((res, cfeature),0)
     return res
-
-
-def visw(st_loader):
-    from matplotlib import pyplot as plt
-    for i,sample in enumerate(st_loader):
-        inp = sample['input'].squeeze()   #(10, 513)
-        target = sample['gt'].squeeze()    #(10, 512)
-        inp = inp[0,:].cpu().numpy()
-        target = target[0,:].cpu().numpy()
-        plt.plot(inp)
-        plt.show()
-        plt.plot(target)
-        plt.show()
-
 
 def trainw(epoch, st_loader, modelw, criterion, optimizer):
     losses = AverageMeter()

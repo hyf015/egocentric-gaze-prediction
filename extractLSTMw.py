@@ -13,29 +13,11 @@ import cv2
 from data.STdatas import STTrainData, STValData
 from models.LSTMnet import lstmnet
 from utils import *
-import argparse
 
 """
 Extract attention weights, save them for training LSTM and later use.
 
-Args:
-	save_path: path for saving attention weights
-	crop_size: size of cropping hard attention from original (14x14) feature map
-	trained_model: pretrained SP module
-
-Use: python extractLSTMw.py --save_path /path/to/folder --trained_model /path/to/pretrained/SP/module
-
 """
-
-parser = argparse.ArgumentParser()
-parser.add_argument('--save_path', default='512w', required=False)
-parser.add_argument('--trained_model', default='savefusion/00004_fusion3d_bn_floss_checkpoint.pth.tar', required=False)
-parser.add_argument('--device', default='0')
-parser.add_argument('--crop_size', type=int, default=3)
-args = parser.parse_args()
-
-device = torch.device('cuda:'+args.device)
-
 
 class st_extract(nn.Module):
     def __init__(self, features_s):
@@ -45,11 +27,6 @@ class st_extract(nn.Module):
     def forward(self, x_s):
         x = self.features_s(x_s)
         return x
-
-batch_size = 1
-
-STTrainLoader = DataLoader(dataset=STTrainData, batch_size=batch_size, shuffle=False, num_workers=1, pin_memory=True)
-STValLoader = DataLoader(dataset=STValData, batch_size=batch_size, shuffle=False, num_workers=1, pin_memory=True)
 
 def crop_feature_var(feature, maxind, size):
     H = feature.size(2)
@@ -66,7 +43,7 @@ def crop_feature_var(feature, maxind, size):
             res = torch.cat((res, cfeature),0)
     return res
 
-def extractw(loader, model, savepath):
+def extractw(loader, model, savepath, crop_size=3):
     if not os.path.exists(save_path):
         os.makedirs(save_path)
     fixflag = False
@@ -90,7 +67,7 @@ def extractw(loader, model, savepath):
                 _, maxind = torch.max(target_flat, 2) #(1,1)
 
                 out = model(inp) #(1,512,14,14)
-                cfeature = crop_feature_var(out, maxind, args.crop_size) #(1,512,3,3)
+                cfeature = crop_feature_var(out, maxind, crop_size) #(1,512,3,3)
                 cfeature = cfeature.contiguous()
                 chn_weight = cfeature.view(cfeature.size(0), cfeature.size(1), -1)
                 chn_weight = torch.mean(chn_weight, 2) #(1,512)
@@ -105,22 +82,26 @@ def extractw(loader, model, savepath):
                 raise RuntimeError('fixation is not processed.')
 
         
+def extract_LSTM_training_data(save_path='512w', trained_model='savefusion/00004_fusion3d_bn_floss_checkpoint.pth.tar', device='0', crop_size=3):
+    batch_size = 1
 
-print('building model...')
-model = st_extract(make_layers(cfg['D'], 3))
-model.to(device)
-trained_model = args.trained_model
-pretrained_dict = torch.load(trained_model)
-pretrained_dict = pretrained_dict['state_dict']
-load_dict = {k:v for k,v in pretrained_dict.items() if 'features_s' in k}
-model_dict = model.state_dict()
-for k in load_dict.keys():
-    if k not in model_dict.keys():
-        del load_dict[k]
-model_dict.update(load_dict)
-model.load_state_dict(model_dict)
-del pretrained_dict, load_dict
+    STTrainLoader = DataLoader(dataset=STTrainData, batch_size=batch_size, shuffle=False, num_workers=1, pin_memory=True)
+    STValLoader = DataLoader(dataset=STValData, batch_size=batch_size, shuffle=False, num_workers=1, pin_memory=True)
+    print('building model...')
+    model = st_extract(make_layers(cfg['D'], 3))
+    model.to(device)
+    pretrained_dict = torch.load(trained_model)
+    pretrained_dict = pretrained_dict['state_dict']
+    load_dict = {k:v for k,v in pretrained_dict.items() if 'features_s' in k}
+    model_dict = model.state_dict()
+    for k in load_dict.keys():
+        if k not in model_dict.keys():
+            del load_dict[k]
+    model_dict.update(load_dict)
+    model.load_state_dict(model_dict)
+    del pretrained_dict, load_dict
 
-extractw(STTrainLoader, model, os.path.join(args.save_path, 'train'))
-extractw(STValLoader, model, os.path.join(args.save_path, 'test'))
-print('Attention weight successfully extracted.')
+
+    extractw(STTrainLoader, model, os.path.join(save_path, 'train'), crop_size)
+    extractw(STValLoader, model, os.path.join(save_path, 'test'), crop_size)
+    print('Attention weight for training LSTMnet successfully extracted.')
