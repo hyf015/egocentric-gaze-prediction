@@ -58,8 +58,8 @@ def crop_feature(feature, maxind, size):
     for b in range(feature.size(0)):
         fmax = np.array(maxind[b])
         fmax = fmax / 16  #downsize from 224 to 14
-        fmax = np.clip(fmax, size/2, H-int(math.ceil(size/2.0)))
-        cfeature = feature[b,:,(fmax[0]-size/2):(fmax[0]+int(math.ceil(size/2.0))),(fmax[1]-size/2):(fmax[1]+int(math.ceil(size/2.0)))]
+        fmax = np.clip(fmax, size//2, H-int(math.ceil(size/2.0)))
+        cfeature = feature[b,:,(fmax[0]-size//2):(fmax[0]+int(math.ceil(size/2.0))),(fmax[1]-size//2):(fmax[1]+int(math.ceil(size/2.0)))]
         cfeature = cfeature.unsqueeze(0)
         if b==0:
             res = cfeature
@@ -73,8 +73,8 @@ def crop_feature_var(feature, maxind, size):
     for b in range(feature.size(0)):
         ind = maxind[b].item()
         fmax = np.unravel_index(ind, (H,W))
-        fmax = np.clip(fmax, size/2, H-int(math.ceil(size/2.0)))
-        cfeature = feature[b,:,(fmax[0]-size/2):(fmax[0]+int(math.ceil(size/2.0))),(fmax[1]-size/2):(fmax[1]+int(math.ceil(size/2.0)))]
+        fmax = np.clip(fmax, int(size/2), H-int(math.ceil(size/2.0)))
+        cfeature = feature[b,:,int(fmax[0]-size/2):int(fmax[0]+int(math.ceil(size/2.0))),int(fmax[1]-size/2):(fmax[1]+int(math.ceil(size/2.0)))]
         cfeature = cfeature.unsqueeze(0)
         if b==0:
             res = cfeature
@@ -113,6 +113,34 @@ def trainw(epoch, st_loader, modelw, criterion, optimizer):
         
     return losses.avg
 
+def testw(epoch, st_loader, modelw, criterion):
+    losses = AverageMeter()
+    modelw.train()
+    hidden = None
+    feature_fusion = torch.ones(batch_size,512,1,1).to(device)
+    currname = None
+    tanh = nn.Tanh()
+    relu = nn.ReLU()
+    pred_chn_weight = None
+    with torch.no_grad():
+        for i, sample in enumerate(st_loader):
+            #reset hidden state only when a video is over
+            same = sample['same']
+            if int(same) == 0:
+                hidden = None
+
+            inp = sample['input'].unsqueeze(0)   #(1, 1, 512)
+            target = sample['gt'].unsqueeze(0)    #(1,1, 512)
+
+            if pred_chn_weight is not None:
+                pred_chn_weight = pred_chn_weight.squeeze()
+                loss = criterion(pred_chn_weight, tanh(target))
+                losses.update(loss.item())
+
+            hidden = repackage_hidden(hidden)
+            pred_chn_weight, hidden = modelw(inp, hidden)
+        
+    return losses.avg
 
 def vis_features(st_loader, model, modelw, savefolder):
     global features_blobs
@@ -369,34 +397,37 @@ if __name__ == '__main__':
         del pretrained_dict
 
     optimizer_late = torch.optim.Adam(model_late.parameters(), lr=1e-4)
-    criterion = floss().to(device)
     print('init done!')
     
     #vis_features(STTrainLoader, model, modelw, 'savelstm/3layerall/vistrainrelu/')
 
-
-    from data.wdatas import wTrainData, wValData
-    wTrainLoader = DataLoader(dataset=wTrainData, batch_size=1, shuffle=False, num_workers=0)
-    wValLoader = DataLoader(dataset=wValData, batch_size=1, shuffle=False, num_workers=0)
     if args.train_lstm:
+        extract_LSTM_training_data(save_path='../512w', trained_model='save/best_fusion.pth.tar', device='0', crop_size=3)
+        from data.wdatas import wTrainData, wValData
+        wTrainLoader = DataLoader(dataset=wTrainData, batch_size=1, shuffle=False, num_workers=0)
+        wValLoader = DataLoader(dataset=wValData, batch_size=1, shuffle=False, num_workers=0)
+    
         print('begin training lstm....')
         #trainw(0, wTrainLoader, modelw, criterionw, optimizerw, val=True)
         #trainw(0, wTrainLoader, modelw, criterionw, optimizerw)
         prev = 999
         prevt = 999
-        for epoch in range(120):
+        loss_train = []
+        loss_val = []
+        for epoch in tqdm(range(120)):
             #lr = raw_input('please input lr:')
             #lr = float(lr)
             #adjust_learning_rate(optimizerw, epoch, lr)
-            l = trainw(epoch, wTrainLoader, modelw, criterionw, optimizerw, verbose = False)
-            print ('---------train loss: %f-----------'%l)
+            l = trainw(epoch, wTrainLoader, modelw, criterionw, optimizerw)
+            loss_train.append(l)
             if l < prevt:
                 torch.save(modelw.state_dict(), os.path.join(args.save_path, args.save_lstm))
-            l = trainw(0, wValLoader, modelw, criterionw, optimizerw)
-            print ('----------val loss: %f-------------'%l)
+            l = testw(0, wValLoader, modelw, criterionw, optimizerw)
+            loss_val.append(l)
             if l<prev:
                 prev=l
                 torch.save(modelw.state_dict(), os.path.join(args.save_path, 'val'+args.save_lstm))
+        plot_loss(loss_train, loss_val, os.path.join(args.save_path, args.lstm_save_img))
     print('lstm training finished!')
 
     if args.extract_late:

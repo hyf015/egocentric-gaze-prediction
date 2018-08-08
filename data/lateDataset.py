@@ -14,7 +14,7 @@ listValGtFiles.sort()
 print('num of training samples: ', len(listGtFiles))
 
 
-imgPath_s = '../gtea2_pred'
+imgPath_s = '../new_pred'
 listTrainFiles = [k for k in os.listdir(imgPath_s) if 'Alireza' not in k]
 #listGtFiles = [k for k in os.listdir(gtPath) if 'Alireza' not in k]
 listValFiles = [k for k in os.listdir(imgPath_s) if 'Alireza' in k]
@@ -23,7 +23,7 @@ listTrainFiles.sort()
 listValFiles.sort()
 print('num of val samples: ', len(listValFiles))
 
-featPath = '../gtea2_feat'
+featPath = '../new_feat'
 listTrainFeats = [k for k in os.listdir(featPath) if 'Alireza' not in k]
 listValFeats = [k for k in os.listdir(featPath) if 'Alireza' in k]
 listTrainFeats.sort()

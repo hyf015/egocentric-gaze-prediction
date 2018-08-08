@@ -2,8 +2,8 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 import os
 
-trainPath = '../512ww/train'
-testPath = '../512ww/test'
+trainPath = '../512w/train'
+testPath = '../512w/test'
 '''
 listTrainFiles = [k for k in os.listdir(trainPath) if 'inp_' in k]
 listTrainFiles.sort()

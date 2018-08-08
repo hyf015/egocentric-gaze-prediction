@@ -198,9 +198,7 @@ if __name__ == '__main__':
     else:
         criterion = floss().to(device)
 
-    optimizer = torch.optim.Adam([{'params': list(model.features_s.parameters())+list(model.features_t.parameters()),
-                                   'lr': args.lr/10},
-                                  {'params': list(model.fusion.parameters())+list(model.bn.parameters())+list(model.decoder.parameters()),}
+    optimizer = torch.optim.Adam([{'params': list(model.fusion.parameters())+list(model.bn.parameters())+list(model.decoder.parameters()),}
                                  ], lr=args.lr)
     train_loss = []
     val_loss = []

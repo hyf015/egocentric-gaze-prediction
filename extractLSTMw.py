@@ -35,7 +35,7 @@ def crop_feature_var(feature, maxind, size):
         ind = maxind[b].item()
         fmax = np.unravel_index(ind, (H,W))
         fmax = np.clip(fmax, size/2, H-int(math.ceil(size/2.0)))
-        cfeature = feature[b,:,(fmax[0]-size/2):(fmax[0]+int(math.ceil(size/2.0))),(fmax[1]-size/2):(fmax[1]+int(math.ceil(size/2.0)))]
+        cfeature = feature[b,:,int(fmax[0]-size/2):int(fmax[0]+int(math.ceil(size/2.0))),int(fmax[1]-size/2):int(fmax[1]+int(math.ceil(size/2.0)))]
         cfeature = cfeature.unsqueeze(0)
         if b==0:
             res = cfeature
@@ -43,9 +43,9 @@ def crop_feature_var(feature, maxind, size):
             res = torch.cat((res, cfeature),0)
     return res
 
-def extractw(loader, model, savepath, crop_size=3):
-    if not os.path.exists(save_path):
-        os.makedirs(save_path)
+def extractw(loader, model, savepath, crop_size=3, device='cuda:0'):
+    if not os.path.exists(savepath):
+        os.makedirs(savepath)
     fixflag = False
     fix2flag = False
     downsample = nn.AvgPool2d(16)
@@ -82,12 +82,12 @@ def extractw(loader, model, savepath, crop_size=3):
                 raise RuntimeError('fixation is not processed.')
 
         
-def extract_LSTM_training_data(save_path='512w', trained_model='savefusion/00004_fusion3d_bn_floss_checkpoint.pth.tar', device='0', crop_size=3):
+def extract_LSTM_training_data(save_path='../512w', trained_model='save/best_fusion.pth.tar', device='0', crop_size=3):
     batch_size = 1
-
+    device = 'cuda:'+ device
     STTrainLoader = DataLoader(dataset=STTrainData, batch_size=batch_size, shuffle=False, num_workers=1, pin_memory=True)
     STValLoader = DataLoader(dataset=STValData, batch_size=batch_size, shuffle=False, num_workers=1, pin_memory=True)
-    print('building model...')
+    print('extracting...')
     model = st_extract(make_layers(cfg['D'], 3))
     model.to(device)
     pretrained_dict = torch.load(trained_model)
@@ -102,6 +102,6 @@ def extract_LSTM_training_data(save_path='512w', trained_model='savefusion/00004
     del pretrained_dict, load_dict
 
 
-    extractw(STTrainLoader, model, os.path.join(save_path, 'train'), crop_size)
-    extractw(STValLoader, model, os.path.join(save_path, 'test'), crop_size)
+    extractw(STTrainLoader, model, os.path.join(save_path, 'train'), crop_size, device)
+    extractw(STValLoader, model, os.path.join(save_path, 'test'), crop_size, device)
     print('Attention weight for training LSTMnet successfully extracted.')
