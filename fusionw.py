@@ -31,6 +31,7 @@ parser.add_argument('--save_late', default='best_late.pth.tar', required=False)
 parser.add_argument('--save_path', default='../savelate', required=False)
 parser.add_argument('--loss_function', default='f', required=False)
 parser.add_argument('--num_epoch', type=int, default=10, required=False)
+parser.add_argument('--extract_lstm', type=bool, default=False, required=False)
 parser.add_argument('--train_lstm', type=bool, default=False, required=False)
 parser.add_argument('--train_late', type=bool, default=False, required=False)
 parser.add_argument('--extract_late', type=bool, default=False, required=False)
@@ -98,10 +99,10 @@ def trainw(epoch, st_loader, modelw, criterion, optimizer):
             hidden = None
 
         inp = sample['input'].unsqueeze(0)   #(1, 1, 512)
-        target = sample['gt'].unsqueeze(0)    #(1,1, 512)
+        target = sample['gt'].unsqueeze(0)    #(1, 1, 512)
 
         if pred_chn_weight is not None:
-            pred_chn_weight = pred_chn_weight.squeeze()
+            #pred_chn_weight = pred_chn_weight.squeeze()
             loss = criterion(pred_chn_weight, tanh(target))
             optimizer.zero_grad()
             loss.backward()
@@ -133,7 +134,7 @@ def testw(epoch, st_loader, modelw, criterion):
             target = sample['gt'].unsqueeze(0)    #(1,1, 512)
 
             if pred_chn_weight is not None:
-                pred_chn_weight = pred_chn_weight.squeeze()
+                #pred_chn_weight = pred_chn_weight.squeeze()
                 loss = criterion(pred_chn_weight, tanh(target))
                 losses.update(loss.item())
 
@@ -400,9 +401,11 @@ if __name__ == '__main__':
     print('init done!')
     
     #vis_features(STTrainLoader, model, modelw, 'savelstm/3layerall/vistrainrelu/')
-
+    if not os.path.exists(args.save_path):
+        os.makedirs(args.save_path)
     if args.train_lstm:
-        extract_LSTM_training_data(save_path='../512w', trained_model='save/best_fusion.pth.tar', device='0', crop_size=3)
+        if args.extract_lstm:
+            extract_LSTM_training_data(save_path='../512w', trained_model='save/best_fusion.pth.tar', device='0', crop_size=3)
         from data.wdatas import wTrainData, wValData
         wTrainLoader = DataLoader(dataset=wTrainData, batch_size=1, shuffle=False, num_workers=0)
         wValLoader = DataLoader(dataset=wValData, batch_size=1, shuffle=False, num_workers=0)
