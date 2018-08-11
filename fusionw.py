@@ -24,7 +24,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--lr', type=float, default=1e-7, required=False, help='lr for Adam')
 parser.add_argument('--late_save_img', default='loss_late.png', required=False)
 parser.add_argument('--pretrained_model', default='save/best_fusion.pth.tar', required=False)
-parser.add_argument('--pretrained_lstm', default='save/valbest_lstm.pth.tar', required=False)
+parser.add_argument('--pretrained_lstm', default=None, required=False)
 parser.add_argument('--pretrained_late', default='save/best_late.pth.tar', required=False)
 parser.add_argument('--lstm_save_img', default='loss_lstm.png', required=False)
 parser.add_argument('--save_lstm', default='best_lstm.pth.tar', required=False)
@@ -85,66 +85,6 @@ def crop_feature_var(feature, maxind, size):
         else:
             res = torch.cat((res, cfeature),0)
     return res
-
-def trainw(st_loader, modelw, criterion, optimizer):
-    losses = AverageMeter()
-    modelw.train()
-    hidden = None
-    feature_fusion = torch.ones(batch_size,512,1,1).to(device)
-    currname = None
-    tanh = nn.Tanh()
-    relu = nn.ReLU()
-    pred_chn_weight = None
-    for i, sample in enumerate(st_loader):
-        #reset hidden state only when a video is over
-        same = sample['same']
-        if int(same) == 0:
-            hidden = None
-
-        inp = sample['input'].unsqueeze(0)   #(1, 1, 512)
-        target = sample['gt'].unsqueeze(0)    #(1, 1, 512)
-
-        if pred_chn_weight is not None:
-            #pred_chn_weight = pred_chn_weight.squeeze()
-            loss = criterion(pred_chn_weight, tanh(target))
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-            losses.update(loss.item())
-
-        hidden = repackage_hidden(hidden)
-        pred_chn_weight, hidden = modelw(inp, hidden)
-        
-    return losses.avg
-
-def testw(st_loader, modelw, criterion):
-    losses = AverageMeter()
-    modelw.eval()
-    hidden = None
-    feature_fusion = torch.ones(batch_size,512,1,1).to(device)
-    currname = None
-    tanh = nn.Tanh()
-    relu = nn.ReLU()
-    pred_chn_weight = None
-    with torch.no_grad():
-        for i, sample in enumerate(st_loader):
-            #reset hidden state only when a video is over
-            same = sample['same']
-            if int(same) == 0:
-                hidden = None
-
-            inp = sample['input'].unsqueeze(0)   #(1, 1, 512)
-            target = sample['gt'].unsqueeze(0)    #(1,1, 512)
-
-            if pred_chn_weight is not None:
-                #pred_chn_weight = pred_chn_weight.squeeze()
-                loss = criterion(pred_chn_weight, tanh(target))
-                losses.update(loss.item())
-
-            hidden = repackage_hidden(hidden)
-            pred_chn_weight, hidden = modelw(inp, hidden)
-        
-    return losses.avg
 
 def vis_features(st_loader, model, modelw, savefolder):
     global features_blobs
@@ -232,76 +172,6 @@ def vis_features(st_loader, model, modelw, savefolder):
         feature_fusion = (pred_chn_weight+1)/2  #turn to range(0,1)
         feature_fusion = feature_fusion.view(batch_size, 512, 1, 1)
 
-def get_weighted(chn_weight, feature):
-    #chn_weight (512), feature(1,512,14,14)
-    chn_weight = chn_weight.view(1,512,1,1)
-    feature = feature * chn_weight
-    feature = torch.sum(feature, 1)
-    feature = feature - torch.min(feature)
-    feature = feature / torch.max(feature)
-    #feature = feature - torch.mean(feature)
-    return feature
-
-def extract_late(st_loader, model, modelw, pred_folder=args.extract_late_pred_folder, feat_folder=args.extract_late_feat_folder):
-    # pred is the gaze prediction result of SP, feat is the output of AT.
-    if not os.path.exists(pred_folder):
-        os.makedirs(pred_folder)
-    if not os.path.exists(feat_folder):
-        os.makedirs(feat_folder)
-    global features_blobs
-    losses = AverageMeter()
-    auc = AverageMeter()
-    aae = AverageMeter()
-    aucm = AverageMeter()
-    aaem = AverageMeter()
-    auc2 = AverageMeter()
-    aae2 = AverageMeter()
-    model.eval()
-    modelw.eval()
-    hidden = None
-    currname = None
-    for i, sample in tqdm(enumerate(st_loader)):
-        currname = sample['imname'][0]
-        fixsac = sample['fixsac']
-        input_s = sample['image']
-        target = sample['gt']
-        input_t = sample['flow']
-        input_s = input_s.float().to(device)
-        input_t = input_t.float().to(device)
-        target = target.float().to(device)
-        input_var_s = input_s
-        input_var_t = input_t
-        target_var = target #(1,1,224,224)
-        features_blobs = []
-        output = model(input_var_s, input_var_t)  #(1,1,224,224)
-        feature_s = features_blobs[0]  #(1,512,14,14)
-
-        outim = output.cpu().data.numpy().squeeze() #(224,224)
-        targetim = target_var.cpu().data.numpy().squeeze() #(224,224)
-        outim = np.uint8(255*outim)
-        cv2.imwrite(os.path.join(pred_folder,currname), outim)
-
-        aae1, auc1, pred_gp = computeAAEAUC(outim,targetim)
-        #aucm.update(auc1)
-        #aaem.update(aae1)
-
-        cfeature = crop_feature(feature_s, pred_gp, 3) #(1,512,3,3)
-        cfeature = cfeature.contiguous()
-        chn_weight = cfeature.view(cfeature.size(0), cfeature.size(1), -1)
-        chn_weight = torch.mean(chn_weight, 2)  #(1,512)
-        if int(fixsac) == 1:
-            feat = get_weighted(chn_weight, feature_s)
-        else:
-            hidden = repackage_hidden(hidden)
-            chn_weight, hidden = modelw(chn_weight.unsqueeze(0), hidden)
-            chn_weight = chn_weight.squeeze(0)
-            feat = get_weighted(chn_weight, feature_s)
-        feat = feat.cpu().data.numpy().squeeze()
-        feat = np.uint8(255*feat)
-        feat = cv2.resize(feat, (224,224))
-        cv2.imwrite(os.path.join(feat_folder,currname), feat)
-
-
 def train_late(epoch, loader, model, criterion, optimizer):
     losses = AverageMeter()
     auc = AverageMeter()
@@ -361,11 +231,11 @@ if __name__ == '__main__':
 
     if not os.path.exists(args.save_path):
         os.makedirs(args.save_path)
-    att = AT(pretrained_model =args.pretrained_model, pretrained_lstm = None, extract_lstm = False, \
+    att = AT(pretrained_model =args.pretrained_model, pretrained_lstm = args.pretrained_lstm, extract_lstm = False, \
             crop_size = 3, num_epoch_lstm = 30, lstm_save_img = 'loss_lstm_fortest.png',\
             save_path = 'save', save_name = 'best_lstm_fortest.pth.tar', device = '0', lstm_data_path = '../512w_fortest')
 
-    att.train()
+    #att.train()
     att.extract_late(DataLoader(dataset=STValData, batch_size=1, shuffle=False, num_workers=1, pin_memory=True))
     '''
     model = VGG_st_3dfuse(make_layers(cfg['D'], 3), make_layers(cfg['D'], 20))
@@ -470,3 +340,4 @@ if __name__ == '__main__':
         if not args.train_late:
             break
     '''
+    

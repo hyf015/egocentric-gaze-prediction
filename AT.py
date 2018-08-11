@@ -61,7 +61,7 @@ class AT():
             model_dict = self.lstm.state_dict()
             model_dict.update(pretrained_dict)
             self.lstm.load_state_dict(model_dict)
-            print('loaded pretrained lstm from ' + args.pretrained_lstm)
+            print('loaded pretrained lstm from ' + pretrained_lstm)
         self.criterion_lstm = nn.MSELoss().to(self.device)
         self.optimizer_lstm = torch.optim.Adam(self.lstm.parameters(), lr=1e-4)
 
@@ -74,11 +74,13 @@ class AT():
         self.save_path = save_path
         self.lstm_data_path = lstm_data_path
         self.save_name = save_name
+        self.batch_size = 1
         self.model = VGG_st_3dfuse(make_layers(cfg['D'], 3), make_layers(cfg['D'], 20))
         pretrained_dict = torch.load(pretrained_model)
         model_dict = self.model.state_dict()
         model_dict.update(pretrained_dict['state_dict'])
         self.model.load_state_dict(model_dict, strict=False)
+        self.model.to(self.device)
         self.model._modules.get(hook_name).register_forward_hook(hook_feature)
         from data.wdatas import wTrainData, wValData
         self.lstmTrainLoader = DataLoader(dataset=wTrainData, batch_size=1, shuffle=False, num_workers=0)
@@ -88,7 +90,7 @@ class AT():
         losses = AverageMeter()
         self.lstm.train()
         hidden = None
-        feature_fusion = torch.ones(batch_size,512,1,1).to(device)
+        feature_fusion = torch.ones(self.batch_size,512,1,1).to(self.device)
         currname = None
         tanh = nn.Tanh()
         relu = nn.ReLU()
@@ -120,7 +122,7 @@ class AT():
         losses = AverageMeter()
         self.lstm.eval()
         hidden = None
-        feature_fusion = torch.ones(batch_size,512,1,1).to(device)
+        feature_fusion = torch.ones(self.batch_size,512,1,1).to(self.device)
         currname = None
         tanh = nn.Tanh()
         relu = nn.ReLU()
@@ -171,8 +173,8 @@ class AT():
         if not os.path.exists(feat_folder):
             os.makedirs(feat_folder)
         global features_blobs
-        model.eval()
-        modelw.eval()
+        self.model.eval()
+        self.lstm.eval()
         hidden = None
         currname = None
         with torch.no_grad():
@@ -182,9 +184,9 @@ class AT():
                 input_s = sample['image']
                 target = sample['gt']
                 input_t = sample['flow']
-                input_s = input_s.float().to(device)
-                input_t = input_t.float().to(device)
-                target = target.float().to(device)
+                input_s = input_s.float().to(self.device)
+                input_t = input_t.float().to(self.device)
+                target = target.float().to(self.device)
                 input_var_s = input_s
                 input_var_t = input_t
                 target_var = target #(1,1,224,224)

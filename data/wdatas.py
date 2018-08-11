@@ -4,16 +4,6 @@ import os
 
 trainPath = '../512w/train'
 testPath = '../512w/test'
-'''
-listTrainFiles = [k for k in os.listdir(trainPath) if 'inp_' in k]
-listTrainFiles.sort()
-listTrainGts = [k for k in os.listdir(trainPath) if 'gt_' in k]
-listTrainGts.sort()
-listValFiles = [k for k in os.listdir(testPath) if 'inp_' in k]
-listValFiles.sort()
-listValGts = [k for k in os.listdir(testPath) if 'gt_' in k]
-listValGts.sort()
-'''
 listTrainFiles = sorted(os.listdir(trainPath))
 listValFiles = sorted(os.listdir(testPath))
 
