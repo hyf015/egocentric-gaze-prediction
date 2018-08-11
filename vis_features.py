@@ -13,6 +13,13 @@ from data.STdatas import STTrainData, STValData
 from models.SP import VGG_st_3dfuse
 from models.LSTMnet import lstmnet
 
+hook_name = 'features_s'
+
+global features_blobs
+features_blobs = []
+def hook_feature(module, input, output):
+    features_blobs.append(output)
+
 def crop_feature_var(feature, maxind, size):
     # used only in vis features
     H = feature.size(2)
@@ -126,6 +133,7 @@ if __name__ == '__main__':
     model_dict.update(pretrained_dict)
     model.load_state_dict(model_dict)
     model.to(device)
+    model._modules.get(hook_name).register_forward_hook(hook_feature)
     lstm = lstmnet()
     model_dict = lstm.state_dict()
     pretrained_dict = torch.load('save/valbest_lstm.pth.tar')
