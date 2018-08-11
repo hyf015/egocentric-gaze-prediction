@@ -361,7 +361,7 @@ if __name__ == '__main__':
 
     if not os.path.exists(args.save_path):
         os.makedirs(args.save_path)
-    att = AT(pretrained_model =args.pretrained_model, pretrained_lstm = None, extract_lstm = True, \
+    att = AT(pretrained_model =args.pretrained_model, pretrained_lstm = None, extract_lstm = False, \
             crop_size = 3, num_epoch_lstm = 30, lstm_save_img = 'loss_lstm_fortest.png',\
             save_path = 'save', save_name = 'best_lstm_fortest.pth.tar', device = '0', lstm_data_path = '../512w_fortest')
 
@@ -470,4 +470,3 @@ if __name__ == '__main__':
         if not args.train_late:
             break
     '''
-    
