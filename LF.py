@@ -16,7 +16,7 @@ from lateDataset import lateDataset
 class LF():
     def __init__(self, pretrained_model = None, save_path = 'save', late_save_img = 'loss_late.png',\
             save_name = 'best_late.pth.tar', device = '0', late_pred_path = '../new_pred', num_epoch = 10,\
-            late_feat_path = '../new_feat', gt_path = '../gtea_gts', val_name = val_name, batch_size = 32,\
+            late_feat_path = '../new_feat', gt_path = '../gtea_gts', val_name = 'Alireza', batch_size = 32,\
             loss_function = 'f'):
         self.model = late_fusion()
         self.device = torch.device('cuda:'+device)
@@ -122,16 +122,21 @@ class LF():
         loss_train = []
         loss_val = []
         for epoch in range(self.num_epoch):
-            loss, auc, aae = train_late(epoch, train_loader, model_late, criterion, optimizer_late)
+            loss, auc, aae = self.trainLate()
             loss_train.append(loss)
             print('training, auc is %5f, aae is %5f'%(auc, aae))
             if loss < trainprev:
-                torch.save({'state_dict': model_late.state_dict(), 'loss': loss, 'auc': auc, 'aae': aae}, os.path.join(args.save_path, args.save_late))
+                torch.save({'state_dict': model_late.state_dict(), 'loss': loss, 'auc': auc, 'aae': aae}, os.path.join(self.save_path, self.save_name))
                 trainprev = loss
 
-            loss, auc, aae = val_late(epoch, val_loader, model_late, criterion)
+            loss, auc, aae = self.testLate()
             loss_val.append(loss)
-            plot_loss(loss_train, loss_val, os.path.join(args.save_path, args.late_save_img))
+            plot_loss(loss_train, loss_val, os.path.join(self.save_path, self.late_save_img))
             if loss < valprev:
-                torch.save({'state_dict': model_late.state_dict(), 'loss': loss, 'auc': auc, 'aae': aae}, os.path.join(args.save_path, 'val'+args.save_late))
+                torch.save({'state_dict': model_late.state_dict(), 'loss': loss, 'auc': auc, 'aae': aae}, os.path.join(self.save_path, 'val'+self.save_name))
                 valprev = loss
+
+    def val(self):
+        for epoch in range(self.num_epoch):
+            loss, auc, aae = self.testLate()
+            print('AUC is : %04f, AAE is: %04f'%(auc, aae))
