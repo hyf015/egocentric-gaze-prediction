@@ -11,7 +11,7 @@ import cv2, os
 from floss import floss
 from utils import *
 from models.late_fusion import late_fusion
-from lateDataset import lateDataset
+from data.lateDataset import lateDataset
 
 class LF():
     def __init__(self, pretrained_model = None, save_path = 'save', late_save_img = 'loss_late.png',\
@@ -26,9 +26,10 @@ class LF():
             model_dict.update(pretrained_dict)
             self.model.load_state_dict(model_dict)
             print('loaded pretrained late fusion model from '+ pretrained_model)
-        self.model.to(device)
+        self.model.to(self.device)
         self.batch_size = batch_size
         self.num_epoch = num_epoch
+        gtPath = gt_path
         listGtFiles = [k for k in os.listdir(gtPath) if val_name not in k]
         listGtFiles.sort()
         listValGtFiles = [k for k in os.listdir(gtPath) if val_name in k]
@@ -66,7 +67,7 @@ class LF():
         losses = AverageMeter()
         auc = AverageMeter()
         aae = AverageMeter()
-        for i,sample in enumerate(self.train_loader):
+        for i,sample in tqdm(enumerate(self.train_loader)):
             im = sample['im']
             gt = sample['gt']
             feat = sample['feat']
@@ -95,7 +96,7 @@ class LF():
         auc = AverageMeter()
         aae = AverageMeter()
         with torch.no_grad():
-            for i,sample in enumerate(self.val_loader):
+            for i,sample in tqdm(enumerate(self.val_loader)):
                 im = sample['im']
                 gt = sample['gt']
                 feat = sample['feat']

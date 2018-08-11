@@ -29,13 +29,15 @@ parser.add_argument('--loss_function', default='f', required=False)
 parser.add_argument('--num_epoch', type=int, default=10, required=False)
 parser.add_argument('--num_epoch_lstm', type=int, default=30, required=False)
 parser.add_argument('--extract_lstm', action='store_true')
+parser.add_argument('--extract_lstm_path', default='../512w', required=False)
 parser.add_argument('--train_lstm', action='store_true')
 parser.add_argument('--train_late', action='store_true')
 parser.add_argument('--extract_late', action='store_true')
 parser.add_argument('--extract_late_pred_folder', default='../new_pred/', required=False)
 parser.add_argument('--extract_late_feat_folder', default='../new_feat/', required=False)
 parser.add_argument('--device', default='0')
-parser.add_argument('--batch_size', type=int, default=10)
+parser.add_argument('--val_name', default='Alireza', required=False)
+parser.add_argument('--batch_size', type=int, default=32)
 parser.add_argument('--crop_size', type=int, default=3)
 args = parser.parse_args()
 
@@ -48,14 +50,14 @@ if __name__ == '__main__':
 
     if not os.path.exists(args.save_path):
         os.makedirs(args.save_path)
-    att = AT(pretrained_model =args.pretrained_model, pretrained_lstm = args.pretrained_lstm, extract_lstm = False, \
-            crop_size = 3, num_epoch_lstm = 30, lstm_save_img = 'loss_lstm_fortest.png',\
-            save_path = 'save', save_name = 'best_lstm_fortest.pth.tar', device = '0', lstm_data_path = '../512w_fortest')
+    att = AT(pretrained_model =args.pretrained_model, pretrained_lstm = args.pretrained_lstm, extract_lstm = args.extract_lstm, \
+            crop_size = args.crop_size, num_epoch_lstm = args.num_epoch_lstm, lstm_save_img = args.lstm_save_img,\
+            save_path = args.save_path, save_name = args.save_lstm, device = args.device, lstm_data_path = args.extract_lstm_path)
 
     att.train()
-    att.extract_late(DataLoader(dataset=STValData, batch_size=1, shuffle=False, num_workers=1, pin_memory=True))
-    lf = LF(pretrained_model = None, save_path = 'save', late_save_img = 'loss_late.png',\
-            save_name = 'best_late.pth.tar', device = '0', late_pred_path = '../new_pred', num_epoch = 10,\
-            late_feat_path = '../new_feat', gt_path = '../gtea_gts', val_name = 'Alireza', batch_size = 32,\
-            loss_function = 'f')
+    att.extract_late(DataLoader(dataset=STValData, batch_size=1, shuffle=False, num_workers=1, pin_memory=True), args.extract_late_pred_folder, args.extract_late_feat_folder)
+    lf = LF(pretrained_model = None, save_path = args.save_path, late_save_img = args.late_save_img,\
+            save_name = args.save_late, device = args.device, late_pred_path = args.extract_late_pred_folder, num_epoch = args.num_epoch,\
+            late_feat_path = args.extract_late_feat_folder, gt_path = '../gtea_gts', val_name = args.val_name, batch_size = args.batch_size,\
+            loss_function = args.loss_function)
     lf.train()
