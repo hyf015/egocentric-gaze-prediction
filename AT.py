@@ -82,9 +82,9 @@ class AT():
         self.model.load_state_dict(model_dict, strict=False)
         self.model.to(self.device)
         self.model._modules.get(hook_name).register_forward_hook(hook_feature)
-        from data.wdatas import wTrainData, wValData
-        self.lstmTrainLoader = DataLoader(dataset=wTrainData, batch_size=1, shuffle=False, num_workers=0)
-        self.lstmValLoader = DataLoader(dataset=wValData, batch_size=1, shuffle=False, num_workers=0)
+        from data.LSTMdatas import LSTMdataset
+        self.lstmTrainLoader = DataLoader(dataset=LSTMdataset(os.path.join(lstm_data_path, 'train')), batch_size=1, shuffle=False, num_workers=0)
+        self.lstmValLoader = DataLoader(dataset=LSTMdataset(os.path.join(lstm_data_path, 'test')), batch_size=1, shuffle=False, num_workers=0)
 
     def trainLSTM(self):
         losses = AverageMeter()
