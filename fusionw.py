@@ -16,6 +16,7 @@ from models.LSTMnet import lstmnet
 from models.SP import VGG_st_3dfuse
 from models.late_fusion import late_fusion
 from extractLSTMw import extract_LSTM_training_data
+from AT import AT
 import argparse
 
 print('importing done!')
@@ -70,6 +71,7 @@ def crop_feature(feature, maxind, size):
     return res
 
 def crop_feature_var(feature, maxind, size):
+	# used only in vis features
     H = feature.size(2)
     W = feature.size(3)
     for b in range(feature.size(0)):
@@ -117,7 +119,7 @@ def trainw(st_loader, modelw, criterion, optimizer):
 
 def testw(st_loader, modelw, criterion):
     losses = AverageMeter()
-    modelw.train()
+    modelw.eval()
     hidden = None
     feature_fusion = torch.ones(batch_size,512,1,1).to(device)
     currname = None
@@ -359,6 +361,13 @@ if __name__ == '__main__':
 
     if not os.path.exists(args.save_path):
         os.makedirs(args.save_path)
+    att = AT(pretrained_model =args.pretrained_model, pretrained_lstm = None, extract_lstm = True, \
+            crop_size = 3, num_epoch_lstm = 30, lstm_save_img = 'loss_lstm_fortest.png',\
+            save_path = 'save', save_name = 'best_lstm_fortest.pth.tar', device = '0', lstm_data_path = '../512w_fortest')
+
+    att.train()
+    att.extract_late(DataLoader(dataset=STValData, batch_size=1, shuffle=False, num_workers=1, pin_memory=True))
+    '''
     model = VGG_st_3dfuse(make_layers(cfg['D'], 3), make_layers(cfg['D'], 20))
     pretrained_dict = torch.load(args.pretrained_model)
     model_dict = model.state_dict()
@@ -414,8 +423,7 @@ if __name__ == '__main__':
                 torch.save(modelw.state_dict(), os.path.join(args.save_path, 'val'+args.save_lstm))
             plot_loss(loss_train, loss_val, os.path.join(args.save_path, args.lstm_save_img))
         print('lstm training finished!')
-
-    load_late = False
+	
     model_late = late_fusion()
     model_late.to(device)
     if not args.train_late:  # then load pretrained late fusion model
@@ -461,3 +469,5 @@ if __name__ == '__main__':
             valprev = loss
         if not args.train_late:
             break
+    '''
+    
