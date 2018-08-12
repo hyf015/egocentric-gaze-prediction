@@ -14,7 +14,7 @@ from tqdm import tqdm
 
 from floss import floss
 from data.STdatas import STTrainData, STValData
-from models.SP import VGG_st_3dfuse
+from models.model_SP import model_SP
 from utils import *
 import argparse
 
@@ -129,7 +129,7 @@ if __name__ == '__main__':
     # 0: from vgg
     # 1: resume from separately pretrained models
     if resume == 2:
-        model = VGG_st_3dfuse(make_layers(cfg['D'], 3), make_layers(cfg['D'], 20))
+        model = model_SP(make_layers(cfg['D'], 3), make_layers(cfg['D'], 20))
         trained_model = os.path.join(save_path,'00004_fusion3d_bn_floss_checkpoint.pth.tar')
         pretrained_dict = torch.load(trained_model)
         epochnow = pretrained_dict['epoch']
