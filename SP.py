@@ -196,4 +196,4 @@ class SP():
             if loss1 < best_loss:
                 best_loss = loss1
                 save_checkpoint({'epoch': epoch, 'arch': 'SP', 'state_dict': self.model.state_dict(),'optimizer':self.optimizer.state_dict(), 'auc': auc1, 'aae': aae1},
-                                    checkpoint_name, save_path)
+                                    checkpoint_name, self.save_path)

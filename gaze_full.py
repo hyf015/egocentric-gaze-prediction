@@ -7,7 +7,7 @@ import argparse
 print('importing done!')
 parser = argparse.ArgumentParser()
 parser.add_argument('--lr', type=float, default=1e-7, required=False, help='lr for LF Adam')
-parser.add_argument('--sp_resume', default='1', required=False)
+parser.add_argument('--sp_resume', default='1', required=False, help='2 from fusion, 0 from vgg, 1 from separately trained models')
 parser.add_argument('--sp_save_img', default='loss_SP.png', required=False)
 parser.add_argument('--late_save_img', default='loss_late.png', required=False)
 parser.add_argument('--pretrained_spatial', default='save/04_spatial.pth.tar', required=False)
