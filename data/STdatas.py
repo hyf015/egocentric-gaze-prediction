@@ -24,9 +24,8 @@ listfixsacTrain.sort()
 
 imgPath_s = '../gtea_images'
 listTrainFiles = [k for k in os.listdir(imgPath_s) if 'Alireza' not in k]
-#listGtFiles = [k for k in os.listdir(gtPath) if 'Alireza' not in k]
 listValFiles = [k for k in os.listdir(imgPath_s) if 'Alireza' in k]
-#listValGtFiles = [k for k in os.listdir(gtPath) if 'Alireza' in k]
+
 listTrainFiles.sort()
 listValFiles.sort()
 print('num of val samples: ', len(listValFiles))

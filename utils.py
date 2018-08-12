@@ -147,3 +147,6 @@ def plot_loss(train_loss, test_loss, save_path):
     plt.legend(['train', 'test'], loc = 'upper right')
     plt.savefig(save_path)
     plt.close()
+
+class generalException(Exception):
+    pass

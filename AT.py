@@ -52,7 +52,8 @@ class AT():
     def __init__(self, pretrained_model = None, pretrained_lstm = None, extract_lstm = False, \
             crop_size = 3, num_epoch_lstm = 30, lstm_save_img = 'loss_lstm.png',\
             save_path = 'save', save_name = 'best_lstm.pth.tar', device = '0', lstm_data_path = '../512w',):
-        assert(pretrained_model is not None)
+        if pretrained_model is None:
+            raise generalException('AT module have to use pretrained SP module.')
         self.device = torch.device('cuda:'+device)
         self.lstm = lstmnet().to(self.device)
         if pretrained_lstm is not None:
