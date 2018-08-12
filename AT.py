@@ -12,7 +12,7 @@ from floss import floss
 from data.STdatas import STTrainData, STValData
 from utils import *
 from models.LSTMnet import lstmnet
-from models.SP import VGG_st_3dfuse
+from models.model_SP import model_SP
 from extractLSTMw import extract_LSTM_training_data
 
 hook_name = 'features_s'
@@ -74,7 +74,7 @@ class AT():
         self.lstm_data_path = lstm_data_path
         self.save_name = save_name
         self.batch_size = 1
-        self.model = VGG_st_3dfuse(make_layers(cfg['D'], 3), make_layers(cfg['D'], 20))
+        self.model = model_SP(make_layers(cfg['D'], 3), make_layers(cfg['D'], 20))
         pretrained_dict = torch.load(pretrained_model)
         model_dict = self.model.state_dict()
         model_dict.update(pretrained_dict['state_dict'])
