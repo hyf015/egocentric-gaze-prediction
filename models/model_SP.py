@@ -1,9 +1,9 @@
 import torch, math
 import torch.nn as nn
 
-class VGG_st_3dfuse(nn.Module):
+class model_SP(nn.Module):
     def __init__(self, features_s, features_t):
-        super(VGG_st_3dfuse, self).__init__()
+        super(model_SP, self).__init__()
         self.features_t = features_t
         self.features_s = features_s
         self.relu = nn.ReLU()
