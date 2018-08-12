@@ -10,6 +10,8 @@ plt.switch_backend('agg')
 import os
 import collections
 
+def save_checkpoint(state,filename,save_path):
+    torch.save(state, os.path.join(save_path, filename))
 
 def var_to_image(var):
     ten = var.data.cpu()

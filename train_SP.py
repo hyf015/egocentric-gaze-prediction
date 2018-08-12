@@ -43,10 +43,6 @@ STValLoader = DataLoader(dataset=STValData, batch_size=args.batch_size, shuffle=
 ##############################################################spatialtemporal data loader#######################################################
 
 
-def save_checkpoint(state,filename,save_path):
-    torch.save(state, os.path.join(save_path, filename))
-
-
 def train(st_loader, model, criterion, optimizer, epoch):
     model.train()
     batch_time = AverageMeter()
@@ -145,7 +141,6 @@ if __name__ == '__main__':
     elif resume == 0:
         epochnow = 0
         model = VGG_st_3dfuse(make_layers(cfg['D'], 3), make_layers(cfg['D'], 20))
-        #pretrained_dict = model_zoo.load_url('https://download.pytorch.org/models/vgg16-397923af.pth')
         pretrained_dict = model_zoo.load_url('https://download.pytorch.org/models/vgg16_bn-6c64b313.pth')
 
         model_dict_s = model.features_s.state_dict()

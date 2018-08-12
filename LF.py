@@ -17,7 +17,7 @@ class LF():
     def __init__(self, pretrained_model = None, save_path = 'save', late_save_img = 'loss_late.png',\
             save_name = 'best_late.pth.tar', device = '0', late_pred_path = '../new_pred', num_epoch = 10,\
             late_feat_path = '../new_feat', gt_path = '../gtea_gts', val_name = 'Alireza', batch_size = 32,\
-            loss_function = 'f'):
+            loss_function = 'f', lr=1e-7):
         self.model = late_fusion()
         self.device = torch.device('cuda:'+device)
         if pretrained_model is not None:
