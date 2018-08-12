@@ -10,7 +10,7 @@ import cv2, os
 
 from utils import *
 from data.STdatas import STTrainData, STValData
-from models.SP import VGG_st_3dfuse
+from models.model_SP import model_SP
 from models.LSTMnet import lstmnet
 
 hook_name = 'features_s'
@@ -127,7 +127,7 @@ if __name__ == '__main__':
     STTrainLoader = DataLoader(dataset=STTrainData, batch_size=args.batch_size, shuffle=True, num_workers=1, pin_memory=True)
     STValLoader = DataLoader(dataset=STValData, batch_size=args.batch_size, shuffle=False, num_workers=1, pin_memory=True)
     device = torch.device('cuda:0')
-    model = VGG_st_3dfuse(make_layers(cfg['D'], 3), make_layers(cfg['D'], 20))
+    model = model_SP(make_layers(cfg['D'], 3), make_layers(cfg['D'], 20))
     model_dict = model.state_dict()
     pretrained_dict = torch.load('save/best_fusion.pth.tar')
     model_dict.update(pretrained_dict)
