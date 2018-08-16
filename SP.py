@@ -174,7 +174,7 @@ class SP():
                         targetim = targetim[0,:,:,:].squeeze()
                         io.imsave(os.path.join(self.save_path,'targetfusion_%05d.jpg'%i), targetim)
                 '''
-                if i % 1000 == 0:
+                if (i+1) % 1000 == 0:
                     print('Test: [{0}/{1}]\t'
                           'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
                           'Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(i, len(self.STValLoader), batch_time=batch_time, loss=losses,))
