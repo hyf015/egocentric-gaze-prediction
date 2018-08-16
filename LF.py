@@ -29,6 +29,7 @@ class LF():
         self.model.to(self.device)
         self.batch_size = batch_size
         self.num_epoch = num_epoch
+        self.epochnow = 0
         gtPath = gt_path
         listGtFiles = [k for k in os.listdir(gtPath) if val_name not in k]
         listGtFiles.sort()
@@ -87,7 +88,7 @@ class LF():
             self.optimizer.step()
             if (i+1)%300 == 0:
                 print('Epoch: [{0}][{1}/{2}]\t''AUCAAE_late {auc.avg:.3f} ({aae.avg:.3f})\t''Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(
-                    epoch, i+1, len(loader)+1, auc = auc, loss= losses, aae=aae,))
+                    self.epochnow, i+1, len(self.train_loader)+1, auc = auc, loss= losses, aae=aae,))
 
         return losses.avg, auc.avg, aae.avg
 
@@ -113,7 +114,7 @@ class LF():
                 losses.update(loss.item())
                 if (i+1) % 1000 == 0:
                     print('Epoch: [{0}][{1}/{2}]\t''AUCAAE_late {auc.avg:.3f} ({aae.avg:.3f})\t''Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(
-                        epoch, i+1, len(loader)+1, auc = auc, loss= losses, aae=aae,))
+                        self.epochnow, i+1, len(self.val_loader)+1, auc = auc, loss= losses, aae=aae,))
 
         return losses.avg, auc.avg, aae.avg
 
@@ -123,6 +124,7 @@ class LF():
         loss_train = []
         loss_val = []
         for epoch in range(self.num_epoch):
+            self.epochnow = epoch
             loss, auc, aae = self.trainLate()
             loss_train.append(loss)
             print('training, auc is %5f, aae is %5f'%(auc, aae))
