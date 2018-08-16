@@ -52,7 +52,7 @@ class lstmDataset(Dataset):
     def __getitem__(self, index):
         inp = torch.load(os.path.join(self.Path , self.listFiles[index]))
         gt = torch.load(os.path.join(self.Path , self.listFiles[index+1]))
-        same = listFiles[index+1][:-14] == listFiles[index][:-14]
+        same = self.listFiles[index+1][:-14] == self.listFiles[index][:-14]
         return {'input': inp, 'gt': gt, 'same': same}
 
 if __name__ == '__main__':
