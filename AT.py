@@ -70,6 +70,7 @@ class AT():
 
         self.crop_size = crop_size
         self.num_epoch_lstm = num_epoch_lstm
+        self.epochnow = 0
         self.lstm_save_img = lstm_save_img
         self.save_path = save_path
         self.lstm_data_path = lstm_data_path
@@ -154,6 +155,7 @@ class AT():
         loss_train = []
         loss_val = []
         for epoch in tqdm(range(self.num_epoch_lstm)):
+            self.epochnow = epoch
             l = self.trainLSTM()
             loss_train.append(l)
             if l < prevt:

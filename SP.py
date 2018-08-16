@@ -134,7 +134,7 @@ class SP():
             loss_mini_batch = 0
             if (i+1)%1000 == 0:
                 print('Epoch: [{0}][{1}/{2}]\t''Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t''Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(
-                    epoch, i+1, len(st_loader)+1, batch_time = batch_time, loss= losses))
+                    self.epochnow, i+1, len(st_loader)+1, batch_time = batch_time, loss= losses))
         return losses.avg
 
     def testSP(self):
@@ -187,6 +187,7 @@ class SP():
         best_loss = 100
 
         for epoch in range(self.epochnow, self.num_epoch):
+            self.epochnow = epoch
             loss1 = self.trainSP()
             train_loss.append(loss1)
             loss1, auc1, aae1 = self.testSP()
