@@ -24,7 +24,7 @@ parser.add_argument('--resume', type=int, default=0, help='0 from vgg, 1 from pr
 parser.add_argument('--pretrained_model', default='save/best_spatial.pth.tar', help='path to pretrained model')
 parser.add_argument('--batch_size', type=int, default=16, required=False)
 parser.add_argument('--flowPath', default='../gtea_imgflow', required=False)
-parser.add_argument('--imgPath', default='../gtea_images', required=False)
+parser.add_argument('--imagePath', default='../gtea_images', required=False)
 parser.add_argument('--fixsacPath', default='../fixsac', required=False)
 parser.add_argument('--gtPath', default='../gtea_gts', required=False)
 parser.add_argument('--val_name', default='Alireza', required=False)
@@ -32,7 +32,7 @@ args = parser.parse_args()
 
 device = torch.device('cuda:'+args.device)
 
-imgPath_s = args.imgPath
+imgPath_s = args.imagePath
 imgPath = args.flowPath
 fixsacPath = args.fixsacPath
 gtPath = args.gtPath

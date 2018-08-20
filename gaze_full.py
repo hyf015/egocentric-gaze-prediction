@@ -1,6 +1,6 @@
 from utils import *
 from torch.utils.data import DataLoader
-from data.STdatas import STTrainData, STValData
+from data.STdatas import STDataset
 from SP import SP
 from AT import AT
 from LF import LF
@@ -50,20 +50,47 @@ batch_size = args.batch_size
 
 
 if __name__ == '__main__':
+    imgPath_s = args.imagePath
+    imgPath = args.flowPath
+    fixsacPath = args.fixsacPath
+    gtPath = args.gtPath
+    listFolders = [k for k in os.listdir(imgPath)]
+    listFolders.sort()
+    listGtFiles = [k for k in os.listdir(gtPath) if args.val_name not in k]
+    listGtFiles.sort()
+    listValGtFiles = [k for k in os.listdir(gtPath) if args.val_name in k]
+    listValGtFiles.sort()
+    print('num of training samples: ', len(listGtFiles))
+
+    listfixsacTrain = [k for k in os.listdir(fixsacPath) if args.val_name not in k]
+    listfixsacVal = [k for k in os.listdir(fixsacPath) if args.val_name in k]
+    listfixsacVal.sort()
+    listfixsacTrain.sort()
+
+    listTrainFiles = [k for k in os.listdir(imgPath_s) if args.val_name not in k]
+    listValFiles = [k for k in os.listdir(imgPath_s) if args.val_name in k]
+
+    listTrainFiles.sort()
+    listValFiles.sort()
+    print('num of val samples: ', len(listValFiles))
+    STTrainData = STDataset(imgPath, imgPath_s, gtPath, listFolders, listTrainFiles, listGtFiles, listfixsacTrain)
+    STValData = STDataset(imgPath, imgPath_s, gtPath, listFolders, listValFiles, listValGtFiles, listfixsacVal)
+
     if not os.path.exists(args.save_path):
         os.makedirs(args.save_path)
 
     if args.train_sp:
         sp = SP(lr=args.lr, loss_save=args.sp_save_img, save_name=args.save_sp, save_path=args.save_path, loss_function=args.loss_function,\
             num_epoch=args.num_epoch, batch_size=args.batch_size_sp, device=args.device, resume=args.sp_resume, \
-            pretrained_spatial=args.pretrained_spatial, pretrained_temporal=args.pretrained_temporal, imgPath = args.flowPath,\
-            gtPath=args.gtPath, fixsacPath=args.fixsacPath, imgPath=args.imagePath)
+            pretrained_spatial=args.pretrained_spatial, pretrained_temporal=args.pretrained_temporal, traindata=STTrainData,\
+            valdata=STValData)
         sp.train()
         args.pretrained_model = os.path.join(args.save_path, args.save_sp)
 
     att = AT(pretrained_model =args.pretrained_model, pretrained_lstm = args.pretrained_lstm, extract_lstm = args.extract_lstm, \
             crop_size = args.crop_size, num_epoch_lstm = args.num_epoch_lstm, lstm_save_img = args.lstm_save_img,\
-            save_path = args.save_path, save_name = args.save_lstm, device = args.device, lstm_data_path = args.extract_lstm_path)
+            save_path = args.save_path, save_name = args.save_lstm, device = args.device, lstm_data_path = args.extract_lstm_path,\
+            traindata = STTrainData, valdata = STValData)
     
     if args.train_lstm:
         att.train()

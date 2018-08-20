@@ -51,7 +51,8 @@ def get_weighted(chn_weight, feature):
 class AT():
     def __init__(self, pretrained_model = None, pretrained_lstm = None, extract_lstm = False, \
             crop_size = 3, num_epoch_lstm = 30, lstm_save_img = 'loss_lstm.png',\
-            save_path = 'save', save_name = 'best_lstm.pth.tar', device = '0', lstm_data_path = '../512w',):
+            save_path = 'save', save_name = 'best_lstm.pth.tar', device = '0', lstm_data_path = '../512w',\
+            traindata = None, valdata = None):
         if pretrained_model is None:
             raise generalException('AT module have to use pretrained SP module.')
         self.device = torch.device('cuda:'+device)
@@ -66,7 +67,8 @@ class AT():
         self.optimizer_lstm = torch.optim.Adam(self.lstm.parameters(), lr=1e-4)
 
         if extract_lstm:
-            extract_LSTM_training_data(save_path=lstm_data_path, trained_model=pretrained_model, device=device, crop_size=crop_size)
+            extract_LSTM_training_data(save_path=lstm_data_path, trained_model=pretrained_model, device=device, crop_size=crop_size, /
+                traindata, valdata)
 
         self.crop_size = crop_size
         self.num_epoch_lstm = num_epoch_lstm
