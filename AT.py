@@ -172,6 +172,7 @@ class AT():
 
     def extract_late(self, st_loader, pred_folder = '../new_pred/', feat_folder = '../new_feat/'):
         # pred is the gaze prediction result of SP, feat is the output of AT.
+        print('begin to extract files for training LF module ...')
         if not os.path.exists(pred_folder):
             os.makedirs(pred_folder)
         if not os.path.exists(feat_folder):
@@ -220,3 +221,4 @@ class AT():
                 feat = np.uint8(255*feat)
                 feat = cv2.resize(feat, (224,224))
                 cv2.imwrite(os.path.join(feat_folder,currname), feat)
+        print('Finished extracting files for LF module!')
