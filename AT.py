@@ -67,7 +67,7 @@ class AT():
         self.optimizer_lstm = torch.optim.Adam(self.lstm.parameters(), lr=1e-4)
 
         if extract_lstm:
-            extract_LSTM_training_data(save_path=lstm_data_path, trained_model=pretrained_model, device=device, crop_size=crop_size, /
+            extract_LSTM_training_data(save_path=lstm_data_path, trained_model=pretrained_model, device=device, crop_size=crop_size, \
                 traindata, valdata)
 
         self.crop_size = crop_size
