@@ -2,7 +2,7 @@ import torch
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
 import os
-from skimage import io
+import cv2
 import math
 from tqdm import tqdm
 
@@ -48,7 +48,7 @@ class STDataset(Dataset):
         return len(self.listGtFiles)
 
     def __getitem__(self, index):
-        im = io.imread(self.imgPath_s + '/' + self.listTrainFiles[index])
+        im = cv2.imread(self.imgPath_s + '/' + self.listTrainFiles[index])
         im = im.transpose((2,0,1))
         im = torch.from_numpy(im)
         im = im.float().div(255)
@@ -57,11 +57,11 @@ class STDataset(Dataset):
         flowy = self.imgy[index]
         flowarr = np.zeros((224,224,20))
         for flowi in range(10):
-            currflowx = io.imread(flowx[flowi])
-            currflowy = io.imread(flowy[flowi])
+            currflowx = cv2.imread(flowx[flowi])
+            currflowy = cv2.imread(flowy[flowi])
             flowarr[:,:,2*flowi] = currflowx
             flowarr[:,:,2*flowi+1] = currflowy
-        gt = io.imread(self.gtPath + '/' + self.listGtFiles[index])
+        gt = cv2.imread(self.gtPath + '/' + self.listGtFiles[index])
         flowarr = np.divide(flowarr, 255.0)
         flowarr = np.subtract(flowarr, 0.5)
         flowarr = np.divide(flowarr, 0.5)

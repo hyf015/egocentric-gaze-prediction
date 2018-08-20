@@ -2,7 +2,7 @@ import torch
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
 import os
-from skimage import io
+import cv2
 import math
 from tqdm import tqdm
 
@@ -19,10 +19,9 @@ class lateDataset(Dataset):
         return len(self.listGtFiles)
 
     def __getitem__(self, index):
-        print(len(self.listFiles))
-        im = io.imread(os.path.join(self.imgPath_s, self.listFiles[index]))
-        gt = io.imread(os.path.join(self.gtPath, self.listGtFiles[index]))
-        feat = io.imread(os.path.join(self.featPath, self.listFeat[index]))
+        im = cv2.imread(os.path.join(self.imgPath_s, self.listFiles[index]))
+        gt = cv2.imread(os.path.join(self.gtPath, self.listGtFiles[index]))
+        feat = cv2.imread(os.path.join(self.featPath, self.listFeat[index]))
         im = torch.from_numpy(im)
         gt = torch.from_numpy(gt)
         feat = torch.from_numpy(feat)
