@@ -74,8 +74,8 @@ if __name__ == '__main__':
     listTrainFiles.sort()
     listValFiles.sort()
     print('num of val samples: ', len(listValFiles))
-    STTrainData = STDataset(imgPath, imgPath_s, gtPath, listFolders, listTrainFiles, listGtFiles, listfixsacTrain)
-    STValData = STDataset(imgPath, imgPath_s, gtPath, listFolders, listValFiles, listValGtFiles, listfixsacVal)
+    STTrainData = STDataset(imgPath, imgPath_s, gtPath, listFolders, listTrainFiles, listGtFiles, listfixsacTrain, fixsacPath)
+    STValData = STDataset(imgPath, imgPath_s, gtPath, listFolders, listValFiles, listValGtFiles, listfixsacVal, fixsacPath)
 
     if not os.path.exists(args.save_path):
         os.makedirs(args.save_path)

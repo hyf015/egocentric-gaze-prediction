@@ -23,7 +23,7 @@ def build_temporal_list(imgPath, gtPath, listFolders, listGtFiles):
     return imgx, imgy
 
 class STDataset(Dataset):
-    def __init__(self, imgPath, imgPath_s, gtPath, listFolders, listTrainFiles, listGtFiles, listfixsacTrain):
+    def __init__(self, imgPath, imgPath_s, gtPath, listFolders, listTrainFiles, listGtFiles, listfixsacTrain, fixsacPath):
         #imgPath is flow path, containing several subfolders
         self.listFolders = listFolders
         self.listGtFiles = listGtFiles
@@ -98,10 +98,10 @@ if __name__ == '__main__':
     listTrainFiles.sort()
     listValFiles.sort()
     print('num of val samples: ', len(listValFiles))
-    STTrainData = STDataset(imgPath, imgPath_s, gtPath, listFolders, listTrainFiles, listGtFiles, listfixsacTrain)
+    STTrainData = STDataset(imgPath, imgPath_s, gtPath, listFolders, listTrainFiles, listGtFiles, listfixsacTrain, fixsacPath)
     STTrainLoader = DataLoader(dataset=STTrainData, batch_size=10, shuffle=False, num_workers=0, pin_memory=True)
 
-    STValData = STDataset(imgPath, imgPath_s, gtPath, listFolders, listValFiles, listValGtFiles, listfixsacVal)
+    STValData = STDataset(imgPath, imgPath_s, gtPath, listFolders, listValFiles, listValGtFiles, listfixsacVal, fixsacPath)
     STValLoader = DataLoader(dataset=STValData, batch_size=10, shuffle=False, num_workers=0, pin_memory=True)
     print(len(STValLoader))
     print(len(STTrainLoader))
