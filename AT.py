@@ -68,7 +68,7 @@ class AT():
 
         if extract_lstm:
             extract_LSTM_training_data(save_path=lstm_data_path, trained_model=pretrained_model, device=device, crop_size=crop_size, \
-                traindata, valdata)
+                traindata=traindata, valdata=valdata)
 
         self.crop_size = crop_size
         self.num_epoch_lstm = num_epoch_lstm
