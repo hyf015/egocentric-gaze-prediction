@@ -19,6 +19,7 @@ class lateDataset(Dataset):
         return len(self.listGtFiles)
 
     def __getitem__(self, index):
+        print(len(self.listFiles))
         im = io.imread(os.path.join(self.imgPath_s, self.listFiles[index]))
         gt = io.imread(os.path.join(self.gtPath, self.listGtFiles[index]))
         feat = io.imread(os.path.join(self.featPath, self.listFeat[index]))
