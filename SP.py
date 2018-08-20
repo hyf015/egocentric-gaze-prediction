@@ -31,8 +31,8 @@ class SP():
         self.device = torch.device('cuda:'+device)
         self.pretrained_spatial = pretrained_spatial
         self.pretrained_temporal = pretrained_temporal
-        self.STTrainLoader = DataLoader(dataset=traindata, batch_size=batch_size, shuffle=True, num_workers=0, pin_memory=True)
-        self.STValLoader = DataLoader(dataset=valdata, batch_size=batch_size, shuffle=False, num_workers=0, pin_memory=True)
+        self.STTrainLoader = DataLoader(dataset=traindata, batch_size=batch_size, shuffle=True, num_workers=1, pin_memory=True)
+        self.STValLoader = DataLoader(dataset=valdata, batch_size=batch_size, shuffle=False, num_workers=1, pin_memory=True)
         # 2: resume from fusion
         # 0: from vgg
         # 1: resume from separately pretrained models
