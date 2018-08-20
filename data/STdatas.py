@@ -57,11 +57,11 @@ class STDataset(Dataset):
         flowy = self.imgy[index]
         flowarr = np.zeros((224,224,20))
         for flowi in range(10):
-            currflowx = cv2.imread(flowx[flowi])
-            currflowy = cv2.imread(flowy[flowi])
+            currflowx = cv2.imread(flowx[flowi], 0)
+            currflowy = cv2.imread(flowy[flowi], 0)
             flowarr[:,:,2*flowi] = currflowx
             flowarr[:,:,2*flowi+1] = currflowy
-        gt = cv2.imread(self.gtPath + '/' + self.listGtFiles[index])
+        gt = cv2.imread(self.gtPath + '/' + self.listGtFiles[index], 0)
         flowarr = np.divide(flowarr, 255.0)
         flowarr = np.subtract(flowarr, 0.5)
         flowarr = np.divide(flowarr, 0.5)
