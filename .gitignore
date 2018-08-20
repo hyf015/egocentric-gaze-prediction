@@ -8,3 +8,4 @@ savelstm/*
 512w/*
 __pycache__/*
 */__pychache__/*
+*.tar
