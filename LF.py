@@ -52,7 +52,7 @@ class LF():
         listValFeats = [k for k in os.listdir(featPath) if val_name in k]
         listTrainFeats.sort()
         listValFeats.sort()
-        assert(len(listTrainFeats) == len(listTrainFiles))
+        assert(len(listTrainFeats) == len(listTrainFiles) and len(listGtFiles) > 0)
         assert(len(listValGtFiles) == len(listValFiles))
         self.train_loader = DataLoader(dataset=lateDataset(imgPath_s, gtPath, featPath, listTrainFiles, listGtFiles, listTrainFeats), \
             batch_size = batch_size, shuffle=True, num_workers=0, pin_memory=True)

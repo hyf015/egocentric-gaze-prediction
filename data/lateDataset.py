@@ -19,9 +19,9 @@ class lateDataset(Dataset):
         return len(self.listGtFiles)
 
     def __getitem__(self, index):
-        im = io.imread(self.imgPath_s + '/' + self.listFiles[index])
-        gt = io.imread(self.gtPath + '/' + self.listGtFiles[index])
-        feat = io.imread(self.featPath + '/' + self.listFeat[index])
+        im = io.imread(os.path.join(self.imgPath_s, self.listFiles[index]))
+        gt = io.imread(os.path.join(self.gtPath, self.listGtFiles[index]))
+        feat = io.imread(os.path.join(self.featPath, self.listFeat[index]))
         im = torch.from_numpy(im)
         gt = torch.from_numpy(gt)
         feat = torch.from_numpy(feat)
