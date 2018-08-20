@@ -50,6 +50,7 @@ batch_size = args.batch_size
 
 
 if __name__ == '__main__':
+    # prepare training and testing data
     imgPath_s = args.imagePath
     imgPath = args.flowPath
     fixsacPath = args.fixsacPath
@@ -79,6 +80,7 @@ if __name__ == '__main__':
     if not os.path.exists(args.save_path):
         os.makedirs(args.save_path)
 
+    # the SP module
     if args.train_sp:
         sp = SP(lr=args.lr, loss_save=args.sp_save_img, save_name=args.save_sp, save_path=args.save_path, loss_function=args.loss_function,\
             num_epoch=args.num_epoch, batch_size=args.batch_size_sp, device=args.device, resume=args.sp_resume, \
@@ -87,6 +89,7 @@ if __name__ == '__main__':
         sp.train()
         args.pretrained_model = os.path.join(args.save_path, args.save_sp)
 
+    # the AT module
     att = AT(pretrained_model =args.pretrained_model, pretrained_lstm = args.pretrained_lstm, extract_lstm = args.extract_lstm, \
             crop_size = args.crop_size, num_epoch_lstm = args.num_epoch_lstm, lstm_save_img = args.lstm_save_img,\
             save_path = args.save_path, save_name = args.save_lstm, device = args.device, lstm_data_path = args.extract_lstm_path,\
@@ -98,6 +101,7 @@ if __name__ == '__main__':
     if args.extract_late:
         att.extract_late(DataLoader(dataset=STValData, batch_size=1, shuffle=False, num_workers=1, pin_memory=True), args.extract_late_pred_folder, args.extract_late_feat_folder)
     
+    # the LF module
     lf = LF(pretrained_model = args.pretrained_late, save_path = args.save_path, late_save_img = args.late_save_img,\
             save_name = args.save_late, device = args.device, late_pred_path = args.extract_late_pred_folder, num_epoch = args.num_epoch,\
             late_feat_path = args.extract_late_feat_folder, gt_path = '../gtea_gts', val_name = args.val_name, batch_size = args.batch_size,\
