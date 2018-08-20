@@ -104,7 +104,7 @@ if __name__ == '__main__':
     # the LF module
     lf = LF(pretrained_model = args.pretrained_late, save_path = args.save_path, late_save_img = args.late_save_img,\
             save_name = args.save_late, device = args.device, late_pred_path = args.extract_late_pred_folder, num_epoch = args.num_epoch,\
-            late_feat_path = args.extract_late_feat_folder, gt_path = '../gtea_gts', val_name = args.val_name, batch_size = args.batch_size,\
+            late_feat_path = args.extract_late_feat_folder, gt_path = args.gtPath, val_name = args.val_name, batch_size = args.batch_size,\
             loss_function = args.loss_function, lr=args.lr)
     if args.train_late:
         lf.train()
