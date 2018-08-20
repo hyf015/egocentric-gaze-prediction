@@ -8,7 +8,7 @@ import math, time, os
 from utils import *
 from floss import floss
 from tqdm import tqdm
-from data.STdatas import STTrainData, STValData
+from data.STdatas import STDataset
 import argparse
 
 parser = argparse.ArgumentParser()
@@ -22,13 +22,44 @@ parser.add_argument('--device', default='0')
 parser.add_argument('--resume', type=int, default=0, help='0 from vgg, 1 from pretrained model.')
 parser.add_argument('--pretrained_model', default='save/best_spatial.pth.tar', help='path to pretrained model')
 parser.add_argument('--batch_size', type=int, default=16, required=False)
+parser.add_argument('--flowPath', default='../gtea_imgflow', required=False)
+parser.add_argument('--imgPath', default='../gtea_images', required=False)
+parser.add_argument('--fixsacPath', default='../fixsac', required=False)
+parser.add_argument('--gtPath', default='../gtea_gts', required=False)
+parser.add_argument('--val_name', default='Alireza', required=False)
 args = parser.parse_args()
 
 device = torch.device('cuda:'+args.device)
+imgPath_s = args.imgPath
+imgPath = args.flowPath
+fixsacPath = args.fixsacPath
+gtPath = args.gtPath
+listFolders = [k for k in os.listdir(imgPath)]
+listFolders.sort()
+listGtFiles = [k for k in os.listdir(gtPath) if args.val_name not in k]
+listGtFiles.sort()
+listValGtFiles = [k for k in os.listdir(gtPath) if args.val_name in k]
+listValGtFiles.sort()
+print('num of training samples: ', len(listGtFiles))
 
-STTrainLoader = DataLoader(dataset=STTrainData, batch_size=args.batch_size, shuffle=True, num_workers=1, pin_memory=True)
+listfixsacTrain = [k for k in os.listdir(fixsacPath) if args.val_name not in k]
+listfixsacVal = [k for k in os.listdir(fixsacPath) if args.val_name in k]
+listfixsacVal.sort()
+listfixsacTrain.sort()
 
-STValLoader = DataLoader(dataset=STValData, batch_size=args.batch_size, shuffle=False, num_workers=1, pin_memory=True)
+listTrainFiles = [k for k in os.listdir(imgPath_s) if args.val_name not in k]
+listValFiles = [k for k in os.listdir(imgPath_s) if args.val_name in k]
+
+listTrainFiles.sort()
+listValFiles.sort()
+print('num of val samples: ', len(listValFiles))
+STTrainData = STDataset(imgPath, imgPath_s, gtPath, listFolders, listTrainFiles, listGtFiles, listfixsacTrain)
+
+STValData = STDataset(imgPath, imgPath_s, gtPath, listFolders, listValFiles, listValGtFiles, listfixsacVal)
+
+STTrainLoader = DataLoader(dataset=STTrainData, batch_size=args.batch_size, shuffle=True, num_workers=0, pin_memory=True)
+
+STValLoader = DataLoader(dataset=STValData, batch_size=args.batch_size, shuffle=False, num_workers=0, pin_memory=True)
 
 class VGG(nn.Module):
     

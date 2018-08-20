@@ -9,7 +9,7 @@ from tqdm import tqdm
 import cv2, os
 
 from utils import *
-from data.STdatas import STTrainData, STValData
+from data.STdatas import STDataset
 from models.model_SP import model_SP
 from models.LSTMnet import lstmnet
 
@@ -124,8 +124,34 @@ def vis_features(st_loader, model, modelw, savefolder):
         feature_fusion = feature_fusion.view(batch_size, 512, 1, 1)
 
 if __name__ == '__main__':
-    STTrainLoader = DataLoader(dataset=STTrainData, batch_size=args.batch_size, shuffle=True, num_workers=1, pin_memory=True)
-    STValLoader = DataLoader(dataset=STValData, batch_size=args.batch_size, shuffle=False, num_workers=1, pin_memory=True)
+    imgPath = '../gtea_imgflow'
+    gtPath = '../gtea_gts'
+    fixsacPath = '../fixsac'
+    listFolders = [k for k in os.listdir(imgPath)]
+    listFolders.sort()
+    listGtFiles = [k for k in os.listdir(gtPath) if 'Alireza' not in k]
+    listGtFiles.sort()
+    listValGtFiles = [k for k in os.listdir(gtPath) if 'Alireza' in k]
+    listValGtFiles.sort()
+    print('num of training samples: ', len(listGtFiles))
+
+    listfixsacTrain = [k for k in os.listdir(fixsacPath) if 'Alireza' not in k]
+    listfixsacVal = [k for k in os.listdir(fixsacPath) if 'Alireza' in k]
+    listfixsacVal.sort()
+    listfixsacTrain.sort()
+
+    imgPath_s = '../gtea_images'
+    listTrainFiles = [k for k in os.listdir(imgPath_s) if 'Alireza' not in k]
+    listValFiles = [k for k in os.listdir(imgPath_s) if 'Alireza' in k]
+
+    listTrainFiles.sort()
+    listValFiles.sort()
+    print('num of val samples: ', len(listValFiles))
+    STTrainData = STDataset(imgPath, imgPath_s, gtPath, listFolders, listTrainFiles, listGtFiles, listfixsacTrain)
+    STTrainLoader = DataLoader(dataset=STTrainData, batch_size=10, shuffle=False, num_workers=0, pin_memory=True)
+
+    STValData = STDataset(imgPath, imgPath_s, gtPath, listFolders, listValFiles, listValGtFiles, listfixsacVal)
+    STValLoader = DataLoader(dataset=STValData, batch_size=10, shuffle=False, num_workers=0, pin_memory=True)
     device = torch.device('cuda:0')
     model = model_SP(make_layers(cfg['D'], 3), make_layers(cfg['D'], 20))
     model_dict = model.state_dict()

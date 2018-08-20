@@ -9,7 +9,7 @@ import math
 from tqdm import tqdm
 import cv2
 
-from data.STdatas import STTrainData, STValData
+from data.STdatas import STDataset
 from models.LSTMnet import lstmnet
 from utils import *
 
@@ -81,12 +81,33 @@ def extractw(loader, model, savepath, crop_size=3, device='cuda:0'):
                 raise RuntimeError('fixation is not processed.')
 
         
-def extract_LSTM_training_data(save_path='../512w', trained_model='save/best_fusion.pth.tar', device='0', crop_size=3):
+def extract_LSTM_training_data(save_path='../512w', trained_model='save/best_fusion.pth.tar', device='0', crop_size=3, \
+    imgPath='../gtea_imgflow', gtPath='../gtea_gts', fixsacPath='../fixsac', imgPath_s='../gtea_images', val_name='Alireza'):
+    print('extracting lstm training data...')
     batch_size = 1
     device = 'cuda:'+ device
+    listFolders = [k for k in os.listdir(imgPath)]
+    listFolders.sort()
+    listGtFiles = [k for k in os.listdir(gtPath) if val_name not in k]
+    listGtFiles.sort()
+    listValGtFiles = [k for k in os.listdir(gtPath) if val_name in k]
+    listValGtFiles.sort()
+
+    listfixsacTrain = [k for k in os.listdir(fixsacPath) if val_name not in k]
+    listfixsacVal = [k for k in os.listdir(fixsacPath) if val_name in k]
+    listfixsacVal.sort()
+    listfixsacTrain.sort()
+
+    listTrainFiles = [k for k in os.listdir(imgPath_s) if val_name not in k]
+    listValFiles = [k for k in os.listdir(imgPath_s) if val_name in k]
+
+    listTrainFiles.sort()
+    listValFiles.sort()
+
+    STTrainData = STDataset(imgPath, imgPath_s, gtPath, listFolders, listTrainFiles, listGtFiles, listfixsacTrain)
+    STValData = STDataset(imgPath, imgPath_s, gtPath, listFolders, listValFiles, listValGtFiles, listfixsacVal)
     STTrainLoader = DataLoader(dataset=STTrainData, batch_size=batch_size, shuffle=False, num_workers=1, pin_memory=True)
     STValLoader = DataLoader(dataset=STValData, batch_size=batch_size, shuffle=False, num_workers=1, pin_memory=True)
-    print('extracting...')
     model = st_extract(make_layers(cfg['D'], 3))
     model.to(device)
     pretrained_dict = torch.load(trained_model)

@@ -9,7 +9,7 @@ from tqdm import tqdm
 import cv2, os
 
 from floss import floss
-from data.STdatas import STTrainData, STValData
+from data.STdatas import STDataset
 from utils import *
 from models.LSTMnet import lstmnet
 from models.model_SP import model_SP

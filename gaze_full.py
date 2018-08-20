@@ -35,6 +35,10 @@ parser.add_argument('--extract_late_pred_folder', default='../new_pred/', requir
 parser.add_argument('--extract_late_feat_folder', default='../new_feat/', required=False)
 parser.add_argument('--device', default='0')
 parser.add_argument('--val_name', default='Alireza', required=False)
+parser.add_argument('--flowPath', default='../gtea_imgflow', required=False)
+parser.add_argument('--imagePath', default='../gtea_images', required=False)
+parser.add_argument('--fixsacPath', default='fixsac', required=False)
+parser.add_argument('--gtPath', default='../gtea_gts', required=False)
 parser.add_argument('--batch_size', type=int, default=32)
 parser.add_argument('--batch_size_sp', type=int, default=8)
 parser.add_argument('--crop_size', type=int, default=3)
@@ -52,7 +56,8 @@ if __name__ == '__main__':
     if args.train_sp:
         sp = SP(lr=args.lr, loss_save=args.sp_save_img, save_name=args.save_sp, save_path=args.save_path, loss_function=args.loss_function,\
             num_epoch=args.num_epoch, batch_size=args.batch_size_sp, device=args.device, resume=args.sp_resume, \
-            pretrained_spatial=args.pretrained_spatial, pretrained_temporal=args.pretrained_temporal,)
+            pretrained_spatial=args.pretrained_spatial, pretrained_temporal=args.pretrained_temporal, imgPath = args.flowPath,\
+            gtPath=args.gtPath, fixsacPath=args.fixsacPath, imgPath=args.imagePath)
         sp.train()
         args.pretrained_model = os.path.join(args.save_path, args.save_sp)
 

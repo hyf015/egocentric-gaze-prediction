@@ -7,19 +7,19 @@ import os
 import numpy as np
 from skimage import io
 from scipy import ndimage
-import math
 import time
-import collections
 from tqdm import tqdm
 
 from floss import floss
-from data.STdatas import STTrainData, STValData
+from data.STdatas import STDataset
 from models.model_SP import model_SP
 from utils import *
 
 class SP():
     def __init__(self, lr=1e-7, loss_save='loss_SP.png', save_name='best_fusion.pth.tar', save_path='save', loss_function='f',\
-        num_epoch=10, batch_size=10, device='0', resume=1, pretrained_spatial='save/04_spatial.pth.tar', pretrained_temporal='save/03_temporal.pth.tar'):
+        num_epoch=10, batch_size=10, device='0', resume=1, pretrained_spatial='save/04_spatial.pth.tar', \
+        pretrained_temporal='save/03_temporal.pth.tar', imgPath = '../gtea_imgflow', gtPath = '../gtea_gts', fixsacPath = '../fixsac',\
+        imgPath_s = '../gtea_images', val_name='Alireza'):
         self.lr = lr
         self.loss_save = loss_save
         self.save_name = save_name
@@ -32,9 +32,29 @@ class SP():
         self.device = torch.device('cuda:'+device)
         self.pretrained_spatial = pretrained_spatial
         self.pretrained_temporal = pretrained_temporal
-        self.STTrainLoader = DataLoader(dataset=STTrainData, batch_size=batch_size, shuffle=True, num_workers=1, pin_memory=True)
 
-        self.STValLoader = DataLoader(dataset=STValData, batch_size=batch_size, shuffle=False, num_workers=1, pin_memory=True)
+        listFolders = [k for k in os.listdir(imgPath)]
+        listFolders.sort()
+        listGtFiles = [k for k in os.listdir(gtPath) if val_name not in k]
+        listGtFiles.sort()
+        listValGtFiles = [k for k in os.listdir(gtPath) if val_name in k]
+        listValGtFiles.sort()
+
+        listfixsacTrain = [k for k in os.listdir(fixsacPath) if val_name not in k]
+        listfixsacVal = [k for k in os.listdir(fixsacPath) if val_name in k]
+        listfixsacVal.sort()
+        listfixsacTrain.sort()
+
+        listTrainFiles = [k for k in os.listdir(imgPath_s) if val_name not in k]
+        listValFiles = [k for k in os.listdir(imgPath_s) if val_name in k]
+
+        listTrainFiles.sort()
+        listValFiles.sort()
+
+        STTrainData = STDataset(imgPath, imgPath_s, gtPath, listFolders, listTrainFiles, listGtFiles, listfixsacTrain)
+        STValData = STDataset(imgPath, imgPath_s, gtPath, listFolders, listValFiles, listValGtFiles, listfixsacVal)
+        self.STTrainLoader = DataLoader(dataset=STTrainData, batch_size=batch_size, shuffle=True, num_workers=0, pin_memory=True)
+        self.STValLoader = DataLoader(dataset=STValData, batch_size=batch_size, shuffle=False, num_workers=0, pin_memory=True)
         # 2: resume from fusion
         # 0: from vgg
         # 1: resume from separately pretrained models
