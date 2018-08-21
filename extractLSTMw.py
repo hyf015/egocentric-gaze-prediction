@@ -49,7 +49,7 @@ def extractw(loader, model, savepath, crop_size=3, device='cuda:0'):
     fix2flag = False
     downsample = nn.AvgPool2d(16)
     with torch.no_grad():
-        for i, sample in tqdm(enumerate(loader)):
+        for i, sample in enumerate(loader):
             fixsac = sample['fixsac']
             if fixflag == False and float(fixsac) == 1.0:
                 fixflag=True
