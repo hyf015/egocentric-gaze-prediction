@@ -20,6 +20,8 @@ class LF():
             loss_function = 'f', lr=1e-7):
         self.model = late_fusion()
         self.device = torch.device('cuda:'+device)
+        self.save_name = save_name
+        self.save_path = save_path
         if pretrained_model is not None:
             pretrained_dict = torch.load(pretrained_model)
             model_dict = self.model.state_dict()
