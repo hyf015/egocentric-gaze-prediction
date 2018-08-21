@@ -121,6 +121,7 @@ class LF():
         return losses.avg, auc.avg, aae.avg
 
     def train(self):
+        print('begin training LF module...')
         trainprev = 999
         valprev = 999
         loss_train = []
@@ -140,8 +141,11 @@ class LF():
             if loss < valprev:
                 torch.save({'state_dict': self.model.state_dict(), 'loss': loss, 'auc': auc, 'aae': aae}, os.path.join(self.save_path, 'val'+self.save_name))
                 valprev = loss
+        print('LF module training finished!')
 
     def val(self):
+        print('begin testing LF module...')
         for epoch in range(self.num_epoch):
             loss, auc, aae = self.testLate()
             print('AUC is : %04f, AAE is: %04f'%(auc, aae))
+        print('LF module testing finished!')
