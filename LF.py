@@ -129,14 +129,14 @@ class LF():
             loss_train.append(loss)
             print('training, auc is %5f, aae is %5f'%(auc, aae))
             if loss < trainprev:
-                torch.save({'state_dict': model_late.state_dict(), 'loss': loss, 'auc': auc, 'aae': aae}, os.path.join(self.save_path, self.save_name))
+                torch.save({'state_dict': self.model.state_dict(), 'loss': loss, 'auc': auc, 'aae': aae}, os.path.join(self.save_path, self.save_name))
                 trainprev = loss
 
             loss, auc, aae = self.testLate()
             loss_val.append(loss)
             plot_loss(loss_train, loss_val, os.path.join(self.save_path, self.late_save_img))
             if loss < valprev:
-                torch.save({'state_dict': model_late.state_dict(), 'loss': loss, 'auc': auc, 'aae': aae}, os.path.join(self.save_path, 'val'+self.save_name))
+                torch.save({'state_dict': self.model.state_dict(), 'loss': loss, 'auc': auc, 'aae': aae}, os.path.join(self.save_path, 'val'+self.save_name))
                 valprev = loss
 
     def val(self):
