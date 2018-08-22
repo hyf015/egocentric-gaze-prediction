@@ -8,7 +8,8 @@ import argparse
 
 print('importing done!')
 parser = argparse.ArgumentParser()
-parser.add_argument('--lr', type=float, default=1e-7, required=False, help='lr for LF Adam')
+parser.add_argument('--lr_late', type=float, default=1e-4, required=False, help='lr for LF Adam')
+parser.add_argument('--lr', type=float, default=1e-7, required=False, help='lr for SP Adam')
 parser.add_argument('--sp_resume', default='1', required=False, help='2 from fusion, 0 from vgg, 1 from separately trained models')
 parser.add_argument('--sp_save_img', default='loss_SP.png', required=False)
 parser.add_argument('--late_save_img', default='loss_late.png', required=False)
@@ -107,7 +108,7 @@ if __name__ == '__main__':
     lf = LF(pretrained_model = args.pretrained_late, save_path = args.save_path, late_save_img = args.late_save_img,\
             save_name = args.save_late, device = args.device, late_pred_path = args.extract_late_pred_folder, num_epoch = args.num_epoch,\
             late_feat_path = args.extract_late_feat_folder, gt_path = args.gtPath, val_name = args.val_name, batch_size = args.batch_size,\
-            loss_function = args.loss_function, lr=args.lr)
+            loss_function = args.loss_function, lr=args.lr_late)
     if args.train_late:
         lf.train()
     else:
