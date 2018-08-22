@@ -38,7 +38,7 @@ class LF():
         listGtFiles.sort()
         listValGtFiles = [k for k in os.listdir(gtPath) if val_name in k]
         listValGtFiles.sort()
-        print('num of training LF samples: %d in /%s'%len(listGtFiles))
+        print('num of training LF samples: %d'%len(listGtFiles))
 
 
         imgPath_s = late_pred_path
