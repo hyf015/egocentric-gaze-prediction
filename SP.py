@@ -37,7 +37,7 @@ class SP():
         # 0: from vgg
         # 1: resume from separately pretrained models
         in_channels = 20
-        if resume == 2:
+        if resume == '2':
             self.model = model_SP(make_layers(cfg['D'], 3), make_layers(cfg['D'], 20))
             trained_model = os.path.join(save_path, save_name)
             pretrained_dict = torch.load(trained_model)
@@ -47,7 +47,7 @@ class SP():
             model_dict = self.model.state_dict()
             model_dict.update(pretrained_dict)
             self.model.load_state_dict(model_dict)
-        elif resume == 0:
+        elif resume == '0':
             self.epochnow = 0
             self.model = model_SP(make_layers(cfg['D'], 3), make_layers(cfg['D'], 20))
             pretrained_dict = model_zoo.load_url('https://download.pytorch.org/models/vgg16_bn-6c64b313.pth')
