@@ -32,15 +32,17 @@ class LF():
         self.batch_size = batch_size
         self.num_epoch = num_epoch
         self.epochnow = 0
+        self.late_save_img = late_save_img
         gtPath = gt_path
         listGtFiles = [k for k in os.listdir(gtPath) if val_name not in k]
         listGtFiles.sort()
         listValGtFiles = [k for k in os.listdir(gtPath) if val_name in k]
         listValGtFiles.sort()
-        print('num of training LF samples: ', len(listGtFiles))
+        print('num of training LF samples: %d in /%s'%len(listGtFiles))
 
 
         imgPath_s = late_pred_path
+        print('Loading SP predictions from /%s'%imgPath_s)
         listTrainFiles = [k for k in os.listdir(imgPath_s) if val_name not in k]
         #listGtFiles = [k for k in os.listdir(gtPath) if val_name not in k]
         listValFiles = [k for k in os.listdir(imgPath_s) if val_name in k]
@@ -64,7 +66,7 @@ class LF():
             self.criterion = floss().to(self.device)
         else:
             self.criterion = torch.nn.BCELoss().to(self.device)
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=1e-7)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
 
     def trainLate(self):
         losses = AverageMeter()
