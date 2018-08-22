@@ -52,7 +52,7 @@ class AT():
     def __init__(self, pretrained_model = None, pretrained_lstm = None, extract_lstm = False, \
             crop_size = 3, num_epoch_lstm = 30, lstm_save_img = 'loss_lstm.png',\
             save_path = 'save', save_name = 'best_lstm.pth.tar', device = '0', lstm_data_path = '../512w',\
-            traindata = None, valdata = None):
+            traindata = None, valdata = None, task=None):
         if pretrained_model is None:
             raise generalException('AT module have to use pretrained SP module.')
         self.device = torch.device('cuda:'+device)
@@ -86,8 +86,8 @@ class AT():
         self.model.to(self.device)
         self.model._modules.get(hook_name).register_forward_hook(hook_feature)
         from data.LSTMdatas import lstmDataset
-        self.lstmTrainLoader = DataLoader(dataset=lstmDataset(os.path.join(lstm_data_path, 'train')), batch_size=1, shuffle=False, num_workers=0)
-        self.lstmValLoader = DataLoader(dataset=lstmDataset(os.path.join(lstm_data_path, 'test')), batch_size=1, shuffle=False, num_workers=0)
+        self.lstmTrainLoader = DataLoader(dataset=lstmDataset(os.path.join(lstm_data_path, 'train'), task), batch_size=1, shuffle=False, num_workers=0)
+        self.lstmValLoader = DataLoader(dataset=lstmDataset(os.path.join(lstm_data_path, 'test'), task), batch_size=1, shuffle=False, num_workers=0)
 
     def reload_LSTM(self, pretrained_lstm):
         pretrained_dict = torch.load(pretrained_lstm)
@@ -95,7 +95,7 @@ class AT():
         model_dict.update(pretrained_dict)
         self.lstm.load_state_dict(model_dict)
         print('loaded pretrained lstm from ' + pretrained_lstm)
-        
+
 
     def trainLSTM(self):
         losses = AverageMeter()

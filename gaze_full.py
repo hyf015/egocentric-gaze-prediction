@@ -36,6 +36,7 @@ parser.add_argument('--extract_late_pred_folder', default='../new_pred/', requir
 parser.add_argument('--extract_late_feat_folder', default='../new_feat/', required=False)
 parser.add_argument('--device', default='0')
 parser.add_argument('--val_name', default='Alireza', required=False)
+parser.add_argument('--task', default=None, required=False)
 parser.add_argument('--flowPath', default='../gtea_imgflow', required=False)
 parser.add_argument('--imagePath', default='../gtea_images', required=False)
 parser.add_argument('--fixsacPath', default='fixsac', required=False)
@@ -94,7 +95,7 @@ if __name__ == '__main__':
     att = AT(pretrained_model =args.pretrained_model, pretrained_lstm = args.pretrained_lstm, extract_lstm = args.extract_lstm, \
             crop_size = args.crop_size, num_epoch_lstm = args.num_epoch_lstm, lstm_save_img = args.lstm_save_img,\
             save_path = args.save_path, save_name = args.save_lstm, device = args.device, lstm_data_path = args.extract_lstm_path,\
-            traindata = STTrainData, valdata = STValData)
+            traindata = STTrainData, valdata = STValData, task = args.task)
     
     if args.train_lstm:
         att.train()
@@ -108,7 +109,7 @@ if __name__ == '__main__':
     lf = LF(pretrained_model = args.pretrained_late, save_path = args.save_path, late_save_img = args.late_save_img,\
             save_name = args.save_late, device = args.device, late_pred_path = args.extract_late_pred_folder, num_epoch = args.num_epoch,\
             late_feat_path = args.extract_late_feat_folder, gt_path = args.gtPath, val_name = args.val_name, batch_size = args.batch_size,\
-            loss_function = args.loss_function, lr=args.lr_late)
+            loss_function = args.loss_function, lr=args.lr_late, task = args.task)
     if args.train_late:
         lf.train()
     else:

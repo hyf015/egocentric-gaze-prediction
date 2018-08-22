@@ -17,7 +17,7 @@ class LF():
     def __init__(self, pretrained_model = None, save_path = 'save', late_save_img = 'loss_late.png',\
             save_name = 'best_late.pth.tar', device = '0', late_pred_path = '../new_pred', num_epoch = 10,\
             late_feat_path = '../new_feat', gt_path = '../gtea_gts', val_name = 'Alireza', batch_size = 32,\
-            loss_function = 'f', lr=1e-7):
+            loss_function = 'f', lr=1e-7, task = None):
         self.model = late_fusion()
         self.device = torch.device('cuda:'+device)
         self.save_name = save_name
@@ -37,6 +37,9 @@ class LF():
         listGtFiles = [k for k in os.listdir(gtPath) if val_name not in k]
         listGtFiles.sort()
         listValGtFiles = [k for k in os.listdir(gtPath) if val_name in k]
+        if task is not None:
+            listGtFiles = [k for k in listGtFiles if task in k]
+            listValGtFiles = [k for k in listValGtFiles if task in k]
         listValGtFiles.sort()
         print('num of training LF samples: %d'%len(listGtFiles))
 
@@ -44,9 +47,10 @@ class LF():
         imgPath_s = late_pred_path
         print('Loading SP predictions from /%s'%imgPath_s)
         listTrainFiles = [k for k in os.listdir(imgPath_s) if val_name not in k]
-        #listGtFiles = [k for k in os.listdir(gtPath) if val_name not in k]
         listValFiles = [k for k in os.listdir(imgPath_s) if val_name in k]
-        #listValGtFiles = [k for k in os.listdir(gtPath) if val_name in k]
+        if task is not None:
+            listTrainFiles = [k for k in listTrainFiles if task in k]
+            listValFiles = [k for k in listValFiles if task in k]
         listTrainFiles.sort()
         listValFiles.sort()
         print('num of LF val samples: ', len(listValFiles))
@@ -54,6 +58,9 @@ class LF():
         featPath = late_feat_path
         listTrainFeats = [k for k in os.listdir(featPath) if val_name not in k]
         listValFeats = [k for k in os.listdir(featPath) if val_name in k]
+        if task is not None:
+            listTrainFeats = [k for k in listTrainFeats if task in k]
+            listValFeats = [k for k in listValFeats if task in k]
         listTrainFeats.sort()
         listValFeats.sort()
         assert(len(listTrainFeats) == len(listTrainFiles) and len(listGtFiles) > 0)

@@ -42,9 +42,12 @@ class wDatasetVal(Dataset):
         return {'input': inp, 'gt': gt, 'same': same}
 '''
 class lstmDataset(Dataset):
-    def __init__(self, Path='../512w/test'):
+    def __init__(self, Path='../512w/test', name=None):
         self.Path = Path
-        self.listFiles = sorted(os.listdir(Path))
+        if name is None:
+            self.listFiles = sorted(os.listdir(Path))
+        else:
+            self.listFiles = sorted([k for k in os.listdir(Path) if name in k])
 
     def __len__(self):
         return len(self.listFiles) - 1
