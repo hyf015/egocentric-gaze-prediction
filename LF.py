@@ -90,7 +90,7 @@ class LF():
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
-            if (i+1)%300 == 0:
+            if (i+1)%3000 == 0:
                 print('Epoch: [{0}][{1}/{2}]\t''AUCAAE_late {auc.avg:.3f} ({aae.avg:.3f})\t''Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(
                     self.epochnow, i+1, len(self.train_loader)+1, auc = auc, loss= losses, aae=aae,))
 
