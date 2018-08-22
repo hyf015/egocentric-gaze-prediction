@@ -143,6 +143,7 @@ class LF():
             if loss < valprev:
                 torch.save({'state_dict': self.model.state_dict(), 'loss': loss, 'auc': auc, 'aae': aae}, os.path.join(self.save_path, 'val'+self.save_name))
                 valprev = loss
+            print('testing, auc is %5f, aae is %5f' % (auc, aae))
         print('LF module training finished!')
 
     def val(self):

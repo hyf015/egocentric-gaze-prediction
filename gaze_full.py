@@ -24,7 +24,7 @@ parser.add_argument('--save_late', default='best_late.pth.tar', required=False)
 parser.add_argument('--save_path', default='save', required=False)
 parser.add_argument('--loss_function', default='f', required=False)
 parser.add_argument('--num_epoch', type=int, default=10, required=False)
-parser.add_argument('--num_epoch_lstm', type=int, default=30, required=False)
+parser.add_argument('--num_epoch_lstm', type=int, default=16, required=False)
 parser.add_argument('--extract_lstm', action='store_true')
 parser.add_argument('--extract_lstm_path', default='../512w', required=False)
 parser.add_argument('--train_sp', action='store_true')
@@ -99,6 +99,7 @@ if __name__ == '__main__':
         att.train()
     
     if args.extract_late:
+        att.reload_LSTM(os.path.join(args.save_path, args.save_lstm))
         att.extract_late(DataLoader(dataset=STValData, batch_size=1, shuffle=False, num_workers=1, pin_memory=True), args.extract_late_pred_folder, args.extract_late_feat_folder)
         att.extract_late(DataLoader(dataset=STTrainData, batch_size=1, shuffle=False, num_workers=1, pin_memory=True), args.extract_late_pred_folder, args.extract_late_feat_folder)
     
