@@ -106,7 +106,7 @@ for num,f in enumerate(gazefiles):
 		#os.makedirs(imagefolder + folder_name)
 	#if not os.path.exists(gtfolder + folder_name):
 		#os.makedirs(gtfolder + folder_name)
-	for i in range(1001, len(nframe)-700):
+	for i in range(1, len(nframe)):
 		#rgb image
 		'''
 		copyfile(sourcefolder + folder_name + ims[i], imagefolder + folder_name[:-1] + '_' + ims[i])
