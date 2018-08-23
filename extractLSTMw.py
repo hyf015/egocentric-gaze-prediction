@@ -51,8 +51,10 @@ def extractw(loader, model, savepath, crop_size=3, device='cuda:0'):
     downsample = nn.AvgPool2d(16)
     with torch.no_grad():
         for i, sample in enumerate(loader):
-            if i == 1:
+            if i == 0:
                 print ('0%')
+            if i == 1:
+                print ('1%')
             if i == len(loader)//2:
                 print ('50%')
             fixsac = sample['fixsac']
