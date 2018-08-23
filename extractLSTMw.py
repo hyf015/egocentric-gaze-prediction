@@ -43,6 +43,7 @@ def crop_feature_var(feature, maxind, size):
     return res
 
 def extractw(loader, model, savepath, crop_size=3, device='cuda:0'):
+    print('extracting lstm training data...')
     if not os.path.exists(savepath):
         os.makedirs(savepath)
     fixflag = False
@@ -50,6 +51,10 @@ def extractw(loader, model, savepath, crop_size=3, device='cuda:0'):
     downsample = nn.AvgPool2d(16)
     with torch.no_grad():
         for i, sample in enumerate(loader):
+            if i == 1:
+                print ('0%')
+            if i == len(loader)//2:
+                print ('50%')
             fixsac = sample['fixsac']
             if fixflag == False and float(fixsac) == 1.0:
                 fixflag=True
@@ -79,10 +84,11 @@ def extractw(loader, model, savepath, crop_size=3, device='cuda:0'):
                 fix2flag = False
             else:
                 raise RuntimeError('fixation is not processed.')
+    print('done')
 
         
 def extract_LSTM_training_data(save_path='../512w', trained_model='save/best_fusion.pth.tar', device='0', crop_size=3, traindata=None, valdata=None):
-    print('extracting lstm training data...')
+    
     batch_size = 1
     device = 'cuda:'+ device
     
