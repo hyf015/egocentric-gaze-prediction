@@ -38,5 +38,22 @@ python gaze_full.py --train_sp --train_lstm --train_late --extract_lstm --extrac
 Y. Huang, <u>M. Cai</u>, Z. Li and Y. Sato, &quot;Predicting Gaze in Egocentric Video by Learning Task-dependent Attention Transition,&quot; <i>European Conference on Computer Vision (**ECCV**)</i>, to appear, 2018. (<font color="blue">oral presentation, acceptance rate: 2%</font>)  
 [[Arxiv preprint]](https://arxiv.org/pdf/1803.09125)
 
-## Demo video (Youtube)
-<iframe width="560" height="315" src="https://www.youtube.com/embed/TiFz-LP3LW4" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+## Citation
+Please cite the following paper if you feel this repository useful.
+```
+@inproceedings{Huang2018Predicting,
+  author    = {Yifei Huang and
+               Minjie Cai and
+               Zhenqiang Li and
+               Yoichi Sato},
+  title     = {Predicting Gaze in Egocentric Video by Learning Task-dependent Attention Transition},
+  booktitle   = {ECCV},
+  year      = {2018},
+}
+```
+
+## Contact
+For any question, please contact
+```
+Yifei Huang: hyf@iis.u-tokyo.ac.jp
+```
