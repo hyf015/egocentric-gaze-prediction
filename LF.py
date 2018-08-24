@@ -156,7 +156,6 @@ class LF():
 
     def val(self):
         print('begin testing LF module...')
-        for epoch in range(self.num_epoch):
-            loss, auc, aae = self.testLate()
-            print('AUC is : %04f, AAE is: %04f'%(auc, aae))
+        loss, auc, aae = self.testLate()
+        print('AUC is : %04f, AAE is: %04f'%(auc, aae))
         print('LF module testing finished!')
