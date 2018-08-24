@@ -24,6 +24,7 @@ class LF():
         self.save_path = save_path
         if pretrained_model is not None:
             pretrained_dict = torch.load(pretrained_model)
+            pretrained_dict = pretrained_dict['state_dict']
             model_dict = self.model.state_dict()
             model_dict.update(pretrained_dict)
             self.model.load_state_dict(model_dict)
