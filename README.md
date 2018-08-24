@@ -1,6 +1,6 @@
 # Code for the paper "Predicting Gaze in Egocentric Video by Learning Task-dependent Attention Transition" (ECCV2018)
 
-<img src="https://hyf015.github.io/static/img/ECCV2018_sample.gif" width="80%" height="80%">
+<img src="https://hyf015.github.io/static/img/ECCV2018_sample.gif">
 
 This is the github repository containing the code for the paper ["Predicting Gaze in Egocentric Video by Learning Task-dependent Attention Transition"](https://arxiv.org/pdf/1803.09125) by Yifei Huang, Minjie Cai, Zhenqiang Li and Yoichi Sato.
 
