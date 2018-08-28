@@ -66,7 +66,7 @@ class STDataset(Dataset):
         flowarr = torch.from_numpy(flowarr)
         flowarr = flowarr.div_(255.0)
         flowarr = flowarr.sub_(0.5)
-        flowarr = flowarr.div(0.5)
+        flowarr = flowarr.div_(0.5)
         gt = torch.from_numpy(gt)
         gt = gt.float().div(255)
         gt = gt.unsqueeze(0)
