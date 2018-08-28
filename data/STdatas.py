@@ -17,7 +17,7 @@ def build_temporal_list(imgPath, gtPath, listFolders, listGtFiles):
         ystr = []
         for m in range(10):
             xstr.append(os.path.join(imgPath, folder, 'flow_x_' + '%05d'%(int(number) - m) + '.jpg'))
-            ystr.append(os.path.join(imgPath, + folder, 'flow_y_' + '%05d'%(int(number) - m) + '.jpg'))
+            ystr.append(os.path.join(imgPath, folder, 'flow_y_' + '%05d'%(int(number) - m) + '.jpg'))
         imgx.append(xstr)
         imgy.append(ystr)
     return imgx, imgy
