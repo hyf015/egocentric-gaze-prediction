@@ -64,7 +64,7 @@ class STDataset(Dataset):
         gt = cv2.imread(self.gtPath + '/' + self.listGtFiles[index], 0)
         flowarr = np.stack(flowarr, axis=0)
         flowarr = torch.from_numpy(flowarr)
-        flowarr = flowarr.div_(255.0)
+        flowarr = flowarr.float().div_(255)
         flowarr = flowarr.sub_(0.5)
         flowarr = flowarr.div_(0.5)
         gt = torch.from_numpy(gt)
