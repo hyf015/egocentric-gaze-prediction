@@ -42,6 +42,7 @@ class SP():
             trained_model = os.path.join(save_path, save_name)
             pretrained_dict = torch.load(trained_model)
             self.epochnow = pretrained_dict['epoch']
+            pretrained_optimizer = pretrained_dict['optimizer']
             pretrained_dict = pretrained_dict['state_dict']
             self.model.to(self.device)
             model_dict = self.model.state_dict()
@@ -51,7 +52,6 @@ class SP():
             self.epochnow = 0
             self.model = model_SP(make_layers(cfg['D'], 3), make_layers(cfg['D'], 20))
             pretrained_dict = model_zoo.load_url('https://download.pytorch.org/models/vgg16_bn-6c64b313.pth')
-
             model_dict_s = self.model.features_s.state_dict()
             model_dict_t = self.model.features_t.state_dict()
             new_pretrained_dict = change_key_names(pretrained_dict, in_channels)
@@ -107,6 +107,8 @@ class SP():
                                  ], lr=self.lr)
         else:
         	self.optimizer = torch.optim.Adam(self.model.parameters(), lr = self.lr)
+        if resume == '2':
+            self.optimizer.load_state_dict(pretrained_optimizer)
         print('SP module init done!')
 
     def trainSP(self):
