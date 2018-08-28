@@ -55,17 +55,17 @@ class STDataset(Dataset):
         im = im.sub_(torch.FloatTensor([0.485,0.456,0.406]).view(3,1,1)).div_(torch.FloatTensor([0.229,0.224,0.225]).view(3,1,1))
         flowx = self.imgx[index]
         flowy = self.imgy[index]
-        flowarr = np.zeros((224,224,20))
+        flowarr = []
         for flowi in range(10):
             currflowx = cv2.imread(flowx[flowi], 0)
             currflowy = cv2.imread(flowy[flowi], 0)
-            flowarr[:,:,2*flowi] = currflowx
-            flowarr[:,:,2*flowi+1] = currflowy
+            flowarr.append(currflowx)
+            flowarr.append(currflowy)
         gt = cv2.imread(self.gtPath + '/' + self.listGtFiles[index], 0)
+        flowarr = np.stack(flowarr, axis=0)
         flowarr = np.divide(flowarr, 255.0)
         flowarr = np.subtract(flowarr, 0.5)
         flowarr = np.divide(flowarr, 0.5)
-        flowarr = flowarr.transpose((2,0,1))
         flowarr = torch.from_numpy(flowarr)
         gt = torch.from_numpy(gt)
         gt = gt.float().div(255)
