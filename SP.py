@@ -57,13 +57,14 @@ class SP():
             new_pretrained_dict = change_key_names(pretrained_dict, in_channels)
             new_pretrained_dict = {k: v for k, v in new_pretrained_dict.items() if 'features' in k}
             pretrained_dict = {k: v for k,v in pretrained_dict.items() if 'features' in k}
-            #print pretrained_dict.keys()
+            pretrained_dict2 = {}
+            new_pretrained_dict2 = {}
             for k in pretrained_dict.keys():
-                pretrained_dict[k[9:]] = pretrained_dict[k]
+                pretrained_dict2[k[9:]] = pretrained_dict[k]
             for k in new_pretrained_dict.keys():
-                new_pretrained_dict[k[9:]] = new_pretrained_dict[k]
-            new_pretrained_dict = {k: v for k, v in new_pretrained_dict.items() if k in model_dict_t}
-            pretrained_dict = {k: v for k,v in pretrained_dict.items() if k in model_dict_s}
+                new_pretrained_dict2[k[9:]] = new_pretrained_dict[k]
+            new_pretrained_dict = {k: v for k, v in new_pretrained_dict2.items() if k in model_dict_t}
+            pretrained_dict = {k: v for k,v in pretrained_dict2.items() if k in model_dict_s}
 
             model_dict_s.update(pretrained_dict)
             model_dict_t.update(new_pretrained_dict)
