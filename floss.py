@@ -8,7 +8,7 @@ class floss(nn.Module):
 
     def forward(self, input, target):
         weights = self.build_weight_from_target(target)
-        weights = torch.from_numpy(weights).cuda()
+        weights = torch.from_numpy(weights).to(target.device())
         loss = nn.functional.binary_cross_entropy(input, target, weight = weights)
         return loss
 
