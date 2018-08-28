@@ -16,8 +16,8 @@ def build_temporal_list(imgPath, gtPath, listFolders, listGtFiles):
         xstr = []
         ystr = []
         for m in range(10):
-            xstr.append(imgPath + '/' + folder + '/' + 'flow_x_' + '%05d'%(int(number) - m) + '.jpg')
-            ystr.append(imgPath + '/' + folder + '/' + 'flow_y_' + '%05d'%(int(number) - m) + '.jpg')
+            xstr.append(os.path.join(imgPath, folder, 'flow_x_' + '%05d'%(int(number) - m) + '.jpg'))
+            ystr.append(os.path.join(imgPath, + folder, 'flow_y_' + '%05d'%(int(number) - m) + '.jpg'))
         imgx.append(xstr)
         imgy.append(ystr)
     return imgx, imgy
@@ -48,7 +48,7 @@ class STDataset(Dataset):
         return len(self.listGtFiles)
 
     def __getitem__(self, index):
-        im = cv2.imread(self.imgPath_s + '/' + self.listTrainFiles[index])
+        im = cv2.imread(os.path.join(self.imgPath_s, self.listTrainFiles[index]))
         im = im.transpose((2,0,1))
         im = torch.from_numpy(im)
         im = im.float().div(255)
@@ -61,7 +61,7 @@ class STDataset(Dataset):
             currflowy = cv2.imread(flowy[flowi], 0)
             flowarr.append(torch.from_numpy(currflowx))
             flowarr.append(torch.from_numpy(currflowy))
-        gt = cv2.imread(self.gtPath + '/' + self.listGtFiles[index], 0)
+        gt = cv2.imread(os.path.join(self.gtPath, self.listGtFiles[index]), 0)
         flowarr = torch.stack(flowarr)
         flowarr = flowarr.float().div_(255)
         flowarr = flowarr.sub_(0.5)
