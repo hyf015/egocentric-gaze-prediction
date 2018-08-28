@@ -102,8 +102,11 @@ class SP():
             self.criterion = floss().to(self.device)
 
         # train params may be change according to resume state
-        self.optimizer = torch.optim.Adam([{'params': list(self.model.fusion.parameters())+list(self.model.bn.parameters())+list(self.model.decoder.parameters()),}
+        if resume != '0':
+        	self.optimizer = torch.optim.Adam([{'params': list(self.model.fusion.parameters())+list(self.model.bn.parameters())+list(self.model.decoder.parameters()),}
                                  ], lr=self.lr)
+        else:
+        	self.optimizer = torch.optim.Adam(self.model.parameters(), lr = self.lr)
         print('SP module init done!')
 
     def trainSP(self):
