@@ -99,7 +99,6 @@ for num,f in enumerate(gazefiles):
 	ims.sort()
 	gazex, gazey, nframe, fixsac = parsetxt('gtea_gaze/' + f)
 	fixsacsave = []
-	#remove the first 1000 frames and the last 700 frames
 	#if not os.path.exists(flowfolder + folder_name):
 		#os.makedirs(flowfolder + folder_name)
 	#if not os.path.exists(imagefolder + folder_name):
