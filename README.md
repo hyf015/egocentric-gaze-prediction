@@ -22,7 +22,7 @@ We use [GTEA Gaze+](http://ai.stanford.edu/~alireza/GTEA_Gaze_Website/GTEA_Gaze+
 
 Please download and extract all images into `path/to/images`.
 
-For the optical flow images, use [dense flow](https://github.com/yjxiong/dense_flow) to extract all optical flow images, and put them into `path/to/opticalflow/images`
+For the optical flow images, use [dense flow](https://github.com/yjxiong/dense_flow) to extract all optical flow images, and put them into `path/to/opticalflow/images`. The flow images will be in different sub-folders.
 
 The ground truth gaze image is generated from the gaze data by pointing a 2d Gaussian at the gaze position. We recommend ground truth images to have same name with rgb images. Put the ground truth gaze maps into `path/to/gt/images`. Processing reference can be seen in [data/dataset_preprocessing.py](data/dataset_preprocessing.py)
 
