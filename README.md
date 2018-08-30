@@ -33,6 +33,9 @@ To run the complete experiment, run
 ```
 python gaze_full.py --train_sp --train_lstm --train_late --extract_lstm --extract_late --flowPath path/to/opticalflow/images --imagePath path/to/images --fixsacPath path/to/fixac/folder --gtPath path/to/gt/images
 ```
+The whole modle is not trained end to end. We extract data for each module and train them separatedly.
+
+Details of args can be seen in [gaze_full.py](gaze_full.py) or by typing ``python gaze_full.py --help``.
 
 ## Publication:
 Y. Huang, <u>M. Cai</u>, Z. Li and Y. Sato, &quot;Predicting Gaze in Egocentric Video by Learning Task-dependent Attention Transition,&quot; <i>European Conference on Computer Vision (**ECCV**)</i>, to appear, 2018. (<font color="blue">oral presentation, acceptance rate: 2%</font>)  
