@@ -29,7 +29,7 @@ The ground truth gaze image is generated from the gaze data by pointing a 2d Gau
 We also use predicted fixation/saccade in our model. Examples for GTEA Gaze+ dataset are in folder [fixsac](fixsac/). You may use any method to predict fixation.
 
 ### Running the code
-To run the complete experiment, run
+To run the complete experiment, after preparing the data, run
 ```
 python gaze_full.py --train_sp --train_lstm --train_late --extract_lstm --extract_late --flowPath path/to/opticalflow/images --imagePath path/to/images --fixsacPath path/to/fixac/folder --gtPath path/to/gt/images
 ```
