@@ -28,13 +28,14 @@ class st_extract(nn.Module):
         return x
 
 def crop_feature_var(feature, maxind, size):
+    size *= 16
     H = feature.size(2)
     W = feature.size(3)
     for b in range(feature.size(0)):
         ind = maxind[b].item()
         fmax = np.unravel_index(ind, (H,W))
-        fmax = np.clip(fmax, size/2, H-int(math.ceil(size/2.0)))
-        cfeature = feature[b,:,int(fmax[0]-size/2):int(fmax[0]+int(math.ceil(size/2.0))),int(fmax[1]-size/2):int(fmax[1]+int(math.ceil(size/2.0)))]
+        fmax = np.clip(fmax, size//2, (H-size//2))
+        cfeature = feature[b,:,(fmax[0]-size//2):(fmax[0]+size//2),(fmax[1]-size//2):(fmax[1]+size//2)]
         cfeature = cfeature.unsqueeze(0)
         if b==0:
             res = cfeature
@@ -69,11 +70,13 @@ def extractw(loader, model, savepath, crop_size=3, device='cuda:0'):
                 inp = inp.float().to(device)
                 target = sample['gt'] #(1,1,224,224)
                 target = target.float().to(device)
-                target_flat = downsample(target).view(target.size(0), target.size(1), -1) #(1,1,196)
+                target = target.view(target.size(0), target.size(1), -1)
+                #target_flat = downsample(target).view(target.size(0), target.size(1), -1) #(1,1,196)
                 _, maxind = torch.max(target_flat, 2) #(1,1)
 
                 out = model(inp) #(1,512,14,14)
-                cfeature = crop_feature_var(out, maxind, crop_size) #(1,512,3,3)
+                out = nn.functional.upsample_bilinear(out, scale_factor = 16)
+                cfeature = crop_feature_var(out, maxind, crop_size) #(1,512,h,w)
                 cfeature = cfeature.contiguous()
                 chn_weight = cfeature.view(cfeature.size(0), cfeature.size(1), -1)
                 chn_weight = torch.mean(chn_weight, 2) #(1,512)
