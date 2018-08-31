@@ -70,7 +70,7 @@ def extractw(loader, model, savepath, crop_size=3, device='cuda:0'):
                 inp = inp.float().to(device)
                 target = sample['gt'] #(1,1,224,224)
                 target = target.float().to(device)
-                target = target.view(target.size(0), target.size(1), -1)
+                target_flat = target.view(target.size(0), target.size(1), -1)
                 #target_flat = downsample(target).view(target.size(0), target.size(1), -1) #(1,1,196)
                 _, maxind = torch.max(target_flat, 2) #(1,1)
 
