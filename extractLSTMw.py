@@ -54,6 +54,9 @@ def crop_feature_var(feature, maxind, size):
         cfeature = cfeature.unsqueeze(0)
         if b==0:
             res = cfeature
+        else:
+            res = torch.cat((res, cfeature),0)
+    return res
 
 def extractw(loader, model, savepath, crop_size=3, device='cuda:0', align=False):
     print('extracting lstm training data...')
