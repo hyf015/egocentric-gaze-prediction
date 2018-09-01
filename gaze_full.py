@@ -44,6 +44,7 @@ parser.add_argument('--gtPath', default='../gtea_gts', required=False, help='dir
 parser.add_argument('--batch_size', type=int, default=32, help='batch size of LF')
 parser.add_argument('--batch_size_sp', type=int, default=8, help='batch size of SP')
 parser.add_argument('--crop_size', type=int, default=3, help='crop size of vgg conv5_3 feature')
+parser.add_argument('--align', action='store_true', help='whether to align feature map on high resolution or not')
 args = parser.parse_args()
 
 device = torch.device('cuda:'+args.device)
@@ -95,7 +96,7 @@ if __name__ == '__main__':
     att = AT(pretrained_model =args.pretrained_model, pretrained_lstm = args.pretrained_lstm, extract_lstm = args.extract_lstm, \
             crop_size = args.crop_size, num_epoch_lstm = args.num_epoch_lstm, lstm_save_img = args.lstm_save_img,\
             save_path = args.save_path, save_name = args.save_lstm, device = args.device, lstm_data_path = args.extract_lstm_path,\
-            traindata = STTrainData, valdata = STValData, task = args.task)
+            traindata = STTrainData, valdata = STValData, task = args.task, align = args.align)
     
     if args.train_lstm:
         att.train()
