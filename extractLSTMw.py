@@ -27,7 +27,7 @@ class st_extract(nn.Module):
         x = self.features_s(x_s)
         return x
 
-def crop_feature_var(feature, maxind, size):
+def crop_feature_align(feature, maxind, size):
     size *= 16
     H = feature.size(2)
     W = feature.size(3)
@@ -43,7 +43,19 @@ def crop_feature_var(feature, maxind, size):
             res = torch.cat((res, cfeature),0)
     return res
 
-def extractw(loader, model, savepath, crop_size=3, device='cuda:0'):
+def crop_feature_var(feature, maxind, size):
+    H = feature.size(2)
+    W = feature.size(3)
+    for b in range(feature.size(0)):
+        ind = maxind[b].item()
+        fmax = np.unravel_index(ind, (H,W))
+        fmax = np.clip(fmax, size/2, H-int(math.ceil(size/2.0)))
+        cfeature = feature[b,:,int(fmax[0]-size/2):int(fmax[0]+int(math.ceil(size/2.0))),int(fmax[1]-size/2):int(fmax[1]+int(math.ceil(size/2.0)))]
+        cfeature = cfeature.unsqueeze(0)
+        if b==0:
+            res = cfeature
+
+def extractw(loader, model, savepath, crop_size=3, device='cuda:0', align=False):
     print('extracting lstm training data...')
     if not os.path.exists(savepath):
         os.makedirs(savepath)
@@ -70,13 +82,18 @@ def extractw(loader, model, savepath, crop_size=3, device='cuda:0'):
                 inp = inp.float().to(device)
                 target = sample['gt'] #(1,1,224,224)
                 target = target.float().to(device)
-                target_flat = target.view(target.size(0), target.size(1), -1)
-                #target_flat = downsample(target).view(target.size(0), target.size(1), -1) #(1,1,196)
+                if align:
+                    target_flat = target.view(target.size(0), target.size(1), -1)
+                else:
+                    target_flat = downsample(target).view(target.size(0), target.size(1), -1) #(1,1,196)
                 _, maxind = torch.max(target_flat, 2) #(1,1)
 
                 out = model(inp) #(1,512,14,14)
-                out = nn.functional.upsample_bilinear(out, scale_factor = 16)
-                cfeature = crop_feature_var(out, maxind, crop_size) #(1,512,h,w)
+                if align:
+                    out = nn.functional.upsample_bilinear(out, scale_factor = 16)
+                    cfeature = crop_feature_align(out, maxind, crop_size) #(1,512,h,w)
+                else:
+                    cfeature = crop_feature_var(out, maxind, crop_size) #(1,512,h,w)
                 cfeature = cfeature.contiguous()
                 chn_weight = cfeature.view(cfeature.size(0), cfeature.size(1), -1)
                 chn_weight = torch.mean(chn_weight, 2) #(1,512)
@@ -92,7 +109,7 @@ def extractw(loader, model, savepath, crop_size=3, device='cuda:0'):
     print('done')
 
         
-def extract_LSTM_training_data(save_path='../512w', trained_model='save/best_fusion.pth.tar', device='0', crop_size=3, traindata=None, valdata=None):
+def extract_LSTM_training_data(save_path='../512w', trained_model='save/best_fusion.pth.tar', device='0', crop_size=3, traindata=None, valdata=None, align=False):
     
     batch_size = 1
     device = 'cuda:'+ device
@@ -113,6 +130,6 @@ def extract_LSTM_training_data(save_path='../512w', trained_model='save/best_fus
     del pretrained_dict, load_dict
 
 
-    extractw(STTrainLoader, model, os.path.join(save_path, 'train'), crop_size, device)
-    extractw(STValLoader, model, os.path.join(save_path, 'test'), crop_size, device)
+    extractw(STTrainLoader, model, os.path.join(save_path, 'train'), crop_size, device, align)
+    extractw(STValLoader, model, os.path.join(save_path, 'test'), crop_size, device, align)
     print('Attention weight for training LSTMnet successfully extracted.')

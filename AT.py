@@ -69,7 +69,7 @@ class AT():
     def __init__(self, pretrained_model = None, pretrained_lstm = None, extract_lstm = False, \
             crop_size = 3, num_epoch_lstm = 30, lstm_save_img = 'loss_lstm.png',\
             save_path = 'save', save_name = 'best_lstm.pth.tar', device = '0', lstm_data_path = '../512w',\
-            traindata = None, valdata = None, task=None):
+            traindata = None, valdata = None, task=None, align=False):
         if pretrained_model is None:
             raise generalException('AT module have to use pretrained SP module.')
         self.device = torch.device('cuda:'+device)
@@ -85,7 +85,7 @@ class AT():
 
         if extract_lstm:
             extract_LSTM_training_data(save_path=lstm_data_path, trained_model=pretrained_model, device=device, crop_size=crop_size, \
-                traindata=traindata, valdata=valdata)
+                traindata=traindata, valdata=valdata, align=align)
 
         self.crop_size = crop_size
         self.num_epoch_lstm = num_epoch_lstm
@@ -95,6 +95,7 @@ class AT():
         self.lstm_data_path = lstm_data_path
         self.save_name = save_name
         self.batch_size = 1
+        self.align = align
         self.model = model_SP(make_layers(cfg['D'], 3), make_layers(cfg['D'], 20))
         pretrained_dict = torch.load(pretrained_model)
         model_dict = self.model.state_dict()
@@ -231,7 +232,10 @@ class AT():
 
                 aae1, auc1, pred_gp = computeAAEAUC(outim,targetim)
 
-                cfeature = crop_align_feature(feature_s, pred_gp, self.crop_size) #(1,512,h,w)
+                if self.align:
+                	cfeature = crop_align_feature(feature_s, pred_gp, self.crop_size) #(1,512,h,w)
+                else:
+                	cfeature = crop_feature(features_s, pred_gp, self.crop_size)
                 cfeature = cfeature.contiguous()
                 chn_weight = cfeature.view(cfeature.size(0), cfeature.size(1), -1)
                 chn_weight = torch.mean(chn_weight, 2)  #(1,512)
