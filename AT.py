@@ -235,7 +235,7 @@ class AT():
                 if self.align:
                 	cfeature = crop_align_feature(feature_s, pred_gp, self.crop_size) #(1,512,h,w)
                 else:
-                	cfeature = crop_feature(features_s, pred_gp, self.crop_size)
+                	cfeature = crop_feature(feature_s, pred_gp, self.crop_size)
                 cfeature = cfeature.contiguous()
                 chn_weight = cfeature.view(cfeature.size(0), cfeature.size(1), -1)
                 chn_weight = torch.mean(chn_weight, 2)  #(1,512)
