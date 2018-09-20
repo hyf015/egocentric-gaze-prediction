@@ -27,8 +27,8 @@ class lstmnet(nn.Module):
         # this hidden should be (h, c)
         input = self.tanh(input)
         if hidden is None:
-            ihidden = Variable(torch.zeros(self.num_layer, batch_size, self.num_channel)).cuda(async = True)
-            icell = Variable(torch.zeros(self.num_layer, batch_size, self.num_channel)).cuda(async = True)
+            ihidden = Variable(torch.zeros(self.num_layer, batch_size, self.num_channel)).to(input.device)
+            icell = Variable(torch.zeros(self.num_layer, batch_size, self.num_channel)).to(input.device)
             inithidden = (ihidden, icell)
             out, hidden = self.lstm(input, inithidden)
         else:
