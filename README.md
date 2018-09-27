@@ -42,7 +42,7 @@ For the optical flow images, use [dense flow](https://github.com/yjxiong/dense_f
         .
 ```
 
-The ground truth gaze image is generated from the gaze data by pointing a 2d Gaussian at the gaze position. We recommend ground truth images to have same name with rgb images. Put the ground truth gaze maps into `path/to/gt/images`. Processing reference can be seen in [data/dataset_preprocessing.py](data/dataset_preprocessing.py)
+The ground truth gaze image is generated from the gaze data by pointing a 2d Gaussian at the gaze position. We recommend ground truth images to have same name with rgb images. Put the ground truth gaze maps into `path/to/gt/images`. For 1280x720 image we use gaussian variance of 70. Processing reference can be seen in [data/dataset_preprocessing.py](data/dataset_preprocessing.py)
 
 We also use predicted fixation/saccade in our model. Examples for GTEA Gaze+ dataset are in folder [fixsac](fixsac/). You may use any method to predict fixation.
 
