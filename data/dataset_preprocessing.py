@@ -77,12 +77,12 @@ def parsetxt(filename):
 					gazey[-1] = (gazey[-1] + float(s[4])) / 2
 	return gazex, gazey, nframe, fixsac
 
-gazefiles = os.listdir('gtea_gaze/')
+gazefiles = os.listdir('gtea_gaze/') #contains txt files of gaze ground truth position, files should be downloaded from http://ai.stanford.edu/~alireza/GTEA_Gaze_Website/GTEA_Gaze+.html
 gazefiles.sort()
-flowfolder = 'gtea_flows/'
+
 imagefolder = 'gtea_images/'
 gtfolder = 'gtea_gts/'
-sourcefolder = 'gtea_imgflow/'
+sourcefolder = 'gtea_imgflow/' #the folder created from extracting flow images using "dense flow" and raw videos
 
 
 for num,f in enumerate(gazefiles):
@@ -120,14 +120,5 @@ for num,f in enumerate(gazefiles):
 		cv2.imwrite(gtfolder + folder_name[:-1] + '_gt_' + ims[i], gazeim)
 		'''
 		fixsacsave.append(fixsac[i])
-		#flow image is too large to store
-		'''
-		flowarr = np.zeros((224,224,20))
-		for flowi in range(10):
-			currflowx = io.imread(sourcefolder + folder_name + flowx[i - flowi])
-			currflowy = io.imread(sourcefolder + folder_name + flowy[i - flowi])
-			flowarr[:,:,2*flowi] = currflowx
-			flowarr[:,:,2*flowi+1] = currflowy
-		np.save(flowfolder + folder_name + 'flow_' + ims[i][:-4] + '.npy', flowarr)
-		'''
+
 	np.savetxt('fixsac/'+f[:-9]+'.txt', fixsacsave)
