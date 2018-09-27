@@ -58,6 +58,7 @@ Details of args can be seen in [gaze_full.py](gaze_full.py) or by typing ``pytho
 ## Publication:
 Y. Huang, <u>M. Cai</u>, Z. Li and Y. Sato, &quot;Predicting Gaze in Egocentric Video by Learning Task-dependent Attention Transition,&quot; <i>European Conference on Computer Vision (**ECCV**)</i>, to appear, 2018. (<font color="blue">oral presentation, acceptance rate: 2%</font>)  
 [[Arxiv preprint]](https://arxiv.org/pdf/1803.09125)
+[CVF Open Access](http://openaccess.thecvf.com/content_ECCV_2018/papers/Huang_Predicting_Gaze_in_ECCV_2018_paper.pdf)
 
 ## Citation
 Please cite the following paper if you feel this repository useful.
