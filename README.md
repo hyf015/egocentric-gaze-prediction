@@ -20,9 +20,7 @@ For simplicity of tuning, we separate the training of each module (SP, AT and LF
 ### Dataset preparation
 We use [GTEA Gaze+](http://ai.stanford.edu/~alireza/GTEA_Gaze_Website/GTEA_Gaze+.html) and [GTEA Gaze](http://ai.stanford.edu/~alireza/GTEA_Gaze_Website/GTEA_Gaze.html) dataset.
 
-Please download and extract all images into `path/to/images`.
-
-For the optical flow images, use [dense flow](https://github.com/yjxiong/dense_flow) to extract all optical flow images, and put them into `path/to/opticalflow/images`. The flow images will be in different sub-folders like:
+For the optical flow images, use [dense flow](https://github.com/yjxiong/dense_flow) to extract all optical flow images, and put them into `path/to/opticalflow/images` (e.g. gtea_imgflow/). The flow images will be in different sub-folders like:
 ```
     .
     +---flow
@@ -42,7 +40,9 @@ For the optical flow images, use [dense flow](https://github.com/yjxiong/dense_f
         .
 ```
 
-The ground truth gaze image is generated from the gaze data by pointing a 2d Gaussian at the gaze position. We recommend ground truth images to have same name with rgb images. Put the ground truth gaze maps into `path/to/gt/images`. For 1280x720 image we use gaussian variance of 70. Processing reference can be seen in [data/dataset_preprocessing.py](data/dataset_preprocessing.py)
+All images should be put into `path/to/images` (e.g. gtea_images/).
+
+The ground truth gaze image is generated from the gaze data by pointing a 2d Gaussian at the gaze position. We recommend ground truth images to have same name with rgb images. Put the ground truth gaze maps into `path/to/gt/images` (e.g. gtea_gts/). For 1280x720 image we use gaussian variance of 70. Processing reference can be seen in [data/dataset_preprocessing.py](data/dataset_preprocessing.py)
 
 We also use predicted fixation/saccade in our model. Examples for GTEA Gaze+ dataset are in folder [fixsac](fixsac/). You may use any method to predict fixation.
 
