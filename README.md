@@ -23,7 +23,7 @@ We use [GTEA Gaze+](http://ai.stanford.edu/~alireza/GTEA_Gaze_Website/GTEA_Gaze+
 For the optical flow images, use [dense flow](https://github.com/yjxiong/dense_flow) to extract all optical flow images, and put them into `path/to/opticalflow/images` (e.g. gtea_imgflow/). The flow images will be in different sub-folders like:
 ```
     .
-    +---flow
+    +---gtea_imgflow
     |
         +---Alireza_American
         |   +---flow_x_00001.jpg
