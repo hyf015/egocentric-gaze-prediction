@@ -102,7 +102,8 @@ if __name__ == '__main__':
         att.train()
     
     if args.extract_late:
-        att.reload_LSTM(os.path.join(args.save_path, args.save_lstm))
+    	if not args.train_lstm:
+        	att.reload_LSTM(os.path.join(args.save_path, args.save_lstm))
         att.extract_late(DataLoader(dataset=STValData, batch_size=1, shuffle=False, num_workers=1, pin_memory=True), args.extract_late_pred_folder, args.extract_late_feat_folder)
         att.extract_late(DataLoader(dataset=STTrainData, batch_size=1, shuffle=False, num_workers=1, pin_memory=True), args.extract_late_pred_folder, args.extract_late_feat_folder)
     
