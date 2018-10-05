@@ -51,7 +51,7 @@ To run the complete experiment, after preparing the data, run
 ```
 python gaze_full.py --train_sp --train_lstm --train_late --extract_lstm --extract_late --flowPath path/to/opticalflow/images --imagePath path/to/images --fixsacPath path/to/fixac/folder --gtPath path/to/gt/images
 ```
-The whole modle is not trained end to end. We extract data for each module and train them separatedly.
+The whole modle is not trained end to end. We extract data for each module and train them separatedly. We reccomend to first train the spatial and temporal stream separatedly, and then train the full SP module using pretrained spatial and temproal models. Direct training of SP result in slightly worse final results but better SP results.
 
 Details of args can be seen in [gaze_full.py](gaze_full.py) or by typing ``python gaze_full.py -h``.
 
