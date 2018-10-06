@@ -55,6 +55,11 @@ The whole modle is not trained end to end. We extract data for each module and t
 
 Details of args can be seen in [gaze_full.py](gaze_full.py) or by typing ``python gaze_full.py -h``.
 
+### Pre-trained model
+You can find pre-trained SP module [here](https://drive.google.com/open?id=14-HTsPIN0s7NHdypY_EnxkJszl8x823o)
+
+The module is trained using leave-one-subject-out strategy, this model is trained with 'Alireza' left out.
+
 ## Publication:
 Y. Huang, <u>M. Cai</u>, Z. Li and Y. Sato, &quot;Predicting Gaze in Egocentric Video by Learning Task-dependent Attention Transition,&quot; <i>European Conference on Computer Vision (**ECCV**)</i>, to appear, 2018. (<font color="blue">oral presentation, acceptance rate: 2%</font>)  
 [[Arxiv preprint]](https://arxiv.org/pdf/1803.09125)
