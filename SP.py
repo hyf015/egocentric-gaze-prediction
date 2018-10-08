@@ -96,6 +96,10 @@ class SP():
             self.model.features_s.load_state_dict(model_dict_s)
             self.model.features_t.load_state_dict(model_dict_t)
             self.model.to(self.device)
+            for params in self.model.features_s.parameters():
+            	params.requires_grad = False
+            for params in self.model.features_t.parameters():
+            	params.requires_grad = False
         if loss_function != 'f':
             self.criterion = torch.nn.BCELoss().to(self.device)
         else:
