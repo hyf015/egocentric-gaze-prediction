@@ -142,6 +142,6 @@ for imname in ims:
 
     #cv2.imwrite(os.path.join(args.dir, 'out_'+imname[3:]), fin)
     im = cv2.imread(os.path.join(args.dir, imname))
-    colormap = cv2.applyColorMap(cv2.resize(fin, (im.shape[0], im.shape[1])), cv2.COLORMAP_JET)
+    colormap = cv2.applyColorMap(cv2.resize(fin, (im.shape[1], im.shape[0])), cv2.COLORMAP_JET)
     res = im * 0.7 + colormap * 0.3
     cv2.imwrite(os.path.join(args.dir, 'out_'+imname[3:]), res)
