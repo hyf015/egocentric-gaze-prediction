@@ -69,6 +69,8 @@ Output gaze prediction using one image only!
 
 3. Run ``run_spatialstream.py --trained_model /path/to/models/spatial.pth.tar --trained_late /path/tp/models/late.pth.tar --dir /path/to/imgs/`` and see the results.
 
+This module assumes fixation at predicted gaze position without any attention transition.
+
 ## Publication:
 Y. Huang, <u>M. Cai</u>, Z. Li and Y. Sato, &quot;Predicting Gaze in Egocentric Video by Learning Task-dependent Attention Transition,&quot; <i>European Conference on Computer Vision (**ECCV**)</i>, to appear, 2018. (<font color="blue">oral presentation, acceptance rate: 2%</font>)  
 [[Arxiv preprint]](https://arxiv.org/pdf/1803.09125)
