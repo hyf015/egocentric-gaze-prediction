@@ -13,7 +13,7 @@ parser.add_argument('--dir', required=True)
 parser.add_argument('--device', default='0', help='now only support single GPU')
 args = parser.parse_args()
 device = torch.device('cuda:'+args.device) if torch.cuda.is_available else 'cpu'
-#device = 'cpu'
+device = 'cpu'
 
 class VGG(nn.Module):
     
@@ -129,7 +129,7 @@ for imname in ims:
     with torch.no_grad():
         out, feat = model(im)
     im = toim(out)
-    cv2.imwrite(os.path.join(args.dir, 'out2_'+imname[3:]), im)
+    #cv2.imwrite(os.path.join(args.dir, 'out2_'+imname[3:]), im)
     predicted = ndimage.measurements.center_of_mass(im)
     vec = crop_feature1(feat, predicted,3)
     vec = vec.contiguous().view(vec.size(0), vec.size(1), -1)
@@ -140,4 +140,8 @@ for imname in ims:
         fin = lf(out, weighted)
     fin = toim(fin)
 
-    cv2.imwrite(os.path.join(args.dir, 'out_'+imname[3:]), fin)
+    #cv2.imwrite(os.path.join(args.dir, 'out_'+imname[3:]), fin)
+    im = cv2.imread(os.path.join(args.dir, imname))
+    colormap = cv2.applyColorMap(cv2.resize(fin, (im.shape[0], im.shape[1])), cv2.COLORMAP_JET)
+    res = im * 0.7 + colormap * 0.3
+    cv2.imwrite(os.path.join(args.dir, 'out_'+imname[3:]), res)
