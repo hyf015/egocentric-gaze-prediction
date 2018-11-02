@@ -15,6 +15,18 @@ The code is tested to work correctly with:
 ## Model architecture
 <img src="https://hyf015.github.io/static/img/ECCV2018_architecture.jpg">
 
+
+## Simple test code
+Output gaze prediction using one image only!
+
+1. Download pretrained models: [spatial](https://drive.google.com/open?id=1Y791ogXzMpQfNBA3HLeycY8XAZ9ZS0EG), [late](https://drive.google.com/open?id=1Ci1RMO6DqZZYyyN9shciBdan1c3jJF7m) and put them into ``path/to/models``.
+
+2. Prepare some images named with ``**_img.jpg`` in ``path/to/imgs/``.
+
+3. Run ``run_spatialstream.py --trained_model /path/to/models/spatial.pth.tar --trained_late /path/tp/models/late.pth.tar --dir /path/to/imgs/`` and see the results.
+
+This module assumes fixation at predicted gaze position without any attention transition.
+
 ## Code usage
 For simplicity of tuning, we separate the training of each module (SP, AT and LF)
 ### Dataset preparation
@@ -59,17 +71,6 @@ Details of args can be seen in [gaze_full.py](gaze_full.py) or by typing ``pytho
 You can find pre-trained SP module [here](https://drive.google.com/open?id=14-HTsPIN0s7NHdypY_EnxkJszl8x823o)
 
 The module is trained using leave-one-subject-out strategy, this model is trained with 'Alireza' left out.
-
-## Simple test code
-Output gaze prediction using one image only!
-
-1. Download pretrained models: [spatial](https://drive.google.com/open?id=1Y791ogXzMpQfNBA3HLeycY8XAZ9ZS0EG), [late](https://drive.google.com/open?id=1Ci1RMO6DqZZYyyN9shciBdan1c3jJF7m) and put them into ``path/to/models``.
-
-2. Prepare some images named with ``**_img.jpg`` in ``path/to/imgs/``.
-
-3. Run ``run_spatialstream.py --trained_model /path/to/models/spatial.pth.tar --trained_late /path/tp/models/late.pth.tar --dir /path/to/imgs/`` and see the results.
-
-This module assumes fixation at predicted gaze position without any attention transition.
 
 ## Publication:
 Y. Huang, <u>M. Cai</u>, Z. Li and Y. Sato, &quot;Predicting Gaze in Egocentric Video by Learning Task-dependent Attention Transition,&quot; <i>European Conference on Computer Vision (**ECCV**)</i>, to appear, 2018. (<font color="blue">oral presentation, acceptance rate: 2%</font>)  
