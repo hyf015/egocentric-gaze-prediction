@@ -25,7 +25,7 @@ Output gaze prediction using one image only!
 
 3. Run ``run_spatialstream.py --trained_model /path/to/models/spatial.pth.tar --trained_late /path/tp/models/late.pth.tar --dir /path/to/imgs/`` and see the results.
 
-This module assumes fixation at predicted gaze position without any attention transition.
+This module assumes fixation at predicted gaze position without any attention transition. Note the model is trained on [GTEA Gaze+](http://ai.stanford.edu/~alireza/GTEA_Gaze_Website/GTEA_Gaze+.html) dataset, I haven't tested images from other datasets, so images from the same dataset is recommended to use.
 
 ## Code usage
 For simplicity of tuning, we separate the training of each module (SP, AT and LF)
