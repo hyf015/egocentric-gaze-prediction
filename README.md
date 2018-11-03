@@ -95,5 +95,5 @@ Please cite the following paper if you feel this repository useful.
 ## Contact
 For any question, please contact
 ```
-Yifei Huang: hyf@iis.u-tokyo.ac.jp
+Yifei Huang: hyf(.at.)iis.u-tokyo.ac.jp
 ```
