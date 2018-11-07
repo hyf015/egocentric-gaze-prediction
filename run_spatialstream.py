@@ -69,18 +69,18 @@ class VGG(nn.Module):
 
 
 model = VGG(make_layers(cfg['D'], 3))
+model.to(device)
 trained_model = args.trained_model
 pretrained_dict = torch.load(trained_model, map_location=device)
 pretrained_dict = pretrained_dict['state_dict']
 model.load_state_dict(pretrained_dict)
 model.eval()
-model.to(device)
 lf = late_fusion()
+lf.to(device)
 pretrained_dict = torch.load(args.trained_late, map_location=device)
 pretrained_dict = pretrained_dict['state_dict']
 lf.load_state_dict(pretrained_dict)
 lf.eval()
-lf.to(device)
 
 def crop_feature1(feature, maxind, size):
     #maxind is gaze point
