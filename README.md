@@ -19,7 +19,7 @@ The code is tested to work correctly with:
 ## Simple test code
 Output gaze prediction using one image only!
 
-1. Download pretrained models: [spatial](https://drive.google.com/open?id=1Y791ogXzMpQfNBA3HLeycY8XAZ9ZS0EG), [late](https://drive.google.com/open?id=1Ci1RMO6DqZZYyyN9shciBdan1c3jJF7m) and put them into ``path/to/models``.
+1. Download pretrained models: [spatial](https://drive.google.com/open?id=1lK8rg2987B2njtfSuuUlAlb7TqQh3Mzd), [late](https://drive.google.com/open?id=1H4TEv0Xhr3o0X0P-E4F-gY1YQaxR9bV2) and put them into ``path/to/models``.
 
 2. Prepare some images named with ``**_img.jpg`` in ``path/to/imgs/``.
 
