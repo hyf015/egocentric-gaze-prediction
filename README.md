@@ -81,14 +81,11 @@ Y. Huang, <u>M. Cai</u>, Z. Li and Y. Sato, &quot;Predicting Gaze in Egocentric 
 ## Citation
 Please cite the following paper if you feel this repository useful.
 ```
-@inproceedings{Huang2018Predicting,
-  author    = {Yifei Huang and
-               Minjie Cai and
-               Zhenqiang Li and
-               Yoichi Sato},
-  title     = {Predicting Gaze in Egocentric Video by Learning Task-dependent Attention Transition},
-  booktitle   = {ECCV},
-  year      = {2018},
+@article{huang2018predicting,
+  title={Predicting Gaze in Egocentric Video by Learning Task-dependent Attention Transition},
+  author={Huang, Yifei and Cai, Minjie and Li, Zhenqiang and Sato, Yoichi},
+  journal={arXiv preprint arXiv:1803.09125},
+  year={2018}
 }
 ```
 
