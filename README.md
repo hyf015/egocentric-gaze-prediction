@@ -12,9 +12,6 @@ The code is tested to work correctly with:
 - OpenCV
 - [tqdm](https://github.com/tqdm/tqdm)
 
-## Model architecture
-<img src="https://hyf015.github.io/static/img/ECCV2018_architecture.jpg">
-
 
 ## Simple test code
 Output gaze prediction using one image only!
@@ -26,6 +23,9 @@ Output gaze prediction using one image only!
 3. Run ``run_spatialstream.py --trained_model /path/to/models/spatial.pth.tar --trained_late /path/tp/models/late.pth.tar --dir /path/to/imgs/`` and see the results.
 
 This module assumes fixation at predicted gaze position without any attention transition. Note the model is trained on [GTEA Gaze+](http://ai.stanford.edu/~alireza/GTEA_Gaze_Website/GTEA_Gaze+.html) dataset, I haven't tested images from other datasets, so images from the same dataset is recommended to use.
+
+## Model architecture
+<img src="https://hyf015.github.io/static/img/ECCV2018_architecture.jpg">
 
 ## Code usage
 For simplicity of tuning, we separate the training of each module (SP, AT and LF)
