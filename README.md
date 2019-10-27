@@ -30,7 +30,7 @@ This module assumes fixation at predicted gaze position without any attention tr
 ## Code usage
 For simplicity of tuning, we separate the training of each module (SP, AT and LF)
 ### Dataset preparation
-We use [GTEA Gaze+](http://ai.stanford.edu/~alireza/GTEA_Gaze_Website/GTEA_Gaze+.html) and [GTEA Gaze](http://ai.stanford.edu/~alireza/GTEA_Gaze_Website/GTEA_Gaze.html) dataset.
+We use [GTEA Gaze+](http://www.cbi.gatech.edu/fpv/) and [GTEA Gaze](http://www.cbi.gatech.edu/fpv/) dataset.
 
 For the optical flow images, use [dense flow](https://github.com/yjxiong/dense_flow) to extract all optical flow images, and put them into `path/to/opticalflow/images` (e.g. gtea_imgflow/). The flow images will be in different sub-folders like:
 ```
